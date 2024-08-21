@@ -1,0 +1,149 @@
+package com.example.ecommerce.ui.cart;
+
+import android.os.Bundle;
+
+import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
+import androidx.recyclerview.widget.LinearLayoutManager;
+
+import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import com.example.ecommerce.MainActivity;
+import com.example.ecommerce.R;
+import com.example.ecommerce.dao.CartDao;
+import com.example.ecommerce.dao.ICartDao;
+import com.example.ecommerce.databinding.FragmentCartBinding;
+import com.example.ecommerce.model.CartItem;
+import com.example.ecommerce.model.Product;
+import com.example.ecommerce.repository.CartRepository;
+import com.example.ecommerce.repository.ICartRepository;
+import com.example.ecommerce.ui.checkout.CheckoutFragment;
+import com.example.ecommerce.ui.products.OnItemClickListener;
+import com.example.ecommerce.ui.products.ProductsFragment;
+import com.example.ecommerce.utils.CartItemsAdapter;
+import com.example.ecommerce.utils.DatabaseHelper;
+import com.google.android.material.appbar.MaterialToolbar;
+
+import java.util.ArrayList;
+
+public class CartFragment extends Fragment implements OnItemClickListener {
+
+    private static final String TAG = "CartFragment";
+    private DatabaseHelper databaseHelper;
+    private ICartDao cartDao;
+    private ICartRepository cartRepository;
+    private CartViewModel cartViewModel;
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+    }
+
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
+        // Inflate the layout for this fragment
+        return inflater.inflate(R.layout.fragment_cart, container, false);
+    }
+
+    @Override
+    public void onViewCreated(View view, Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+
+        FragmentCartBinding binding = FragmentCartBinding.bind(view);
+
+        MaterialToolbar toolbar = view.findViewById(R.id.main_toolbar);
+        toolbar.inflateMenu(R.menu.menu_main_appbar);
+        toolbar.findViewById(R.id.go_to_cart).setOnClickListener(v -> {
+            ((MainActivity) requireActivity()).loadFragment(new CheckoutFragment());
+        });
+        TextView tvItemCount = toolbar.findViewById(R.id.item_count);
+        TextView tvGoToCart = toolbar.findViewById(R.id.go_to_cart);
+        tvGoToCart.setVisibility(View.GONE);
+        toolbar.setTitle("Cart");
+        toolbar.setTitleTextColor(getResources().getColor(R.color.backgroundColor));
+        toolbar.setOnMenuItemClickListener(item -> {
+            if (item.getItemId() == R.id.share) {
+                Toast.makeText(getContext(), "Share clicked", Toast.LENGTH_SHORT).show();
+                return true;
+            } else {
+                return false;
+            }
+        });
+        toolbar.setNavigationIcon(R.drawable.baseline_arrow_back_24);
+        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                // Navigate somewhere.
+                ((MainActivity) getActivity()).loadFragment(new ProductsFragment());
+            }
+        });
+        toolbar.setOnMenuItemClickListener(item -> {
+            Log.d("ProductsFragment", "onOptionsItemSelected");
+            if (item.getItemId() == R.id.new_user) {
+                Toast.makeText(getContext(), "New user clicked", Toast.LENGTH_SHORT).show();
+                return true;
+            } else if (item.getItemId() == R.id.categories) {
+                Toast.makeText(getContext(), "Categories clicked", Toast.LENGTH_SHORT).show();
+                return true;
+            } else if (item.getItemId() == R.id.settings) {
+                Toast.makeText(getContext(), "Settings clicked", Toast.LENGTH_SHORT).show();
+                return true;
+            } else {
+                return false;
+            }
+        });
+
+        binding.chargeButton.setOnClickListener(v -> {
+            ((MainActivity) requireActivity()).loadFragment(new CheckoutFragment());
+        });
+
+        // Initialize the database helper and DAO objects for the cart
+        databaseHelper = MainActivity.databaseHelper;
+        cartDao = new CartDao(databaseHelper);
+        cartRepository = new CartRepository(cartDao);
+
+        // Initialize the cart view model
+        cartViewModel = new ViewModelProvider(this, new CartViewModelFactory(cartRepository)).get(CartViewModel.class);
+
+        // Initialize the cart items adapter
+        CartItemsAdapter cartItemsAdapter = new CartItemsAdapter(this, getContext(), new ArrayList<CartItem>());
+        binding.cartItemsRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+        binding.cartItemsRecyclerView.setAdapter(cartItemsAdapter);
+
+        // Fetch cart
+        cartViewModel.getCart().observe(getViewLifecycleOwner(), cart -> {
+            cartItemsAdapter.setCartItems(cart.getCartItems());
+            tvItemCount.setText(String.valueOf(cart.getTotalItems()));
+            binding.tvTaxAmount.setText(String.valueOf(cart.getCartTotalTax()));
+            binding.tvTotalAmount.setText(String.valueOf(cart.getCartTotalPrice()));
+            binding.tvSubTotalAmount.setText(String.valueOf(cart.getCartSubTotalPrice()));
+            if(cart.getCartItems().isEmpty()) {
+                // disable the charge button
+                binding.chargeButton.setEnabled(false);
+                binding.chargeButton.setText("CHARGE");
+
+            } else {
+                binding.chargeButton.setEnabled(true);
+                binding.chargeButton.setText("CHARGE " + cart.getCartTotalPrice());
+
+            }
+        });
+    }
+
+    @Override
+    public void onItemClick(int cartItemId) {
+        Toast.makeText(getContext(), "Cart item clicked" + cartItemId, Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void onItemLongClick(int cartItemId) {
+        cartViewModel.onRemoveFromCart(cartItemId);
+        Toast.makeText(getContext(), "Cart item removed" + cartItemId, Toast.LENGTH_SHORT).show();
+    }
+}

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="primaryColor">#6200EA</color>         <!-- Deep Purple 500 -->
+    <color name="primaryDarkColor">#3700B3</color>     <!-- Deep Purple 700 -->
+    <color name="accentColor">#03DAC5</color>          <!-- Teal 200 -->
+    <color name="backgroundColor">#FFFFFF</color>      <!-- White -->
+    <color name="textColorPrimary">#212121</color>     <!-- Dark Gray -->
+    <color name="textColorSecondary">#757575</color>   <!-- Light Gray -->
+    <color name="navigationBarColor">#6200EA</color>   <!-- Deep Purple 500 -->
+    <color name="actionBarColor">#6200EA</color>       <!-- Deep Purple 500 -->
+</resources>

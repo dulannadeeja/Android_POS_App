@@ -1,0 +1,42 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Base application theme. -->
+    <style name="Base.Theme.Ecommerce" parent="Theme.Material3.DayNight.NoActionBar">
+        <!-- Customize your light theme here. -->
+        <!-- Primary brand color. -->
+        <item name="android:colorPrimary">@color/primaryColor</item>
+        <!-- Darker variant of the primary color for status bar, etc. -->
+        <item name="android:colorPrimaryDark">@color/primaryDarkColor</item>
+        <!-- Color for UI components like checkboxes, radio buttons, etc. -->
+        <item name="android:colorAccent">@color/accentColor</item>
+        <!-- Background color for activities. -->
+        <item name="android:colorBackground">@color/backgroundColor</item>
+        <!-- Text color for the entire app. -->
+        <item name="android:textColorPrimary">@color/textColorPrimary</item>
+        <item name="android:textColorSecondary">@color/textColorSecondary</item>
+        <!-- Control the navigation bar color. -->
+        <item name="android:navigationBarColor">@color/navigationBarColor</item>
+        <!-- Action overflow menu -->
+        <!-- Customize overflow menu (three dots) color -->
+        <item name="android:actionOverflowMenuStyle">@style/OverflowMenuStyle</item>
+        <item name="android:actionBarStyle">@style/ActionBarStyle</item>
+    </style>
+
+    <style name="Theme.Ecommerce" parent="Base.Theme.Ecommerce" />
+
+    <style name="OverflowMenuStyle" parent="android:Widget.Material.ActionButton.Overflow">
+        <item name="android:tint">@color/actionBarColor</item>
+    </style>
+
+    <style name="ActionBarStyle" parent="android:Widget.Material.ActionBar">
+        <!-- Custom background color for the Action Bar -->
+        <item name="android:background">@color/actionBarColor</item>
+
+        <!-- Optional: Customize other aspects of the action bar -->
+        <!-- <item name="android:titleTextStyle">@style/ActionBarTitleTextStyle</item> -->
+        <!-- <item name="android:subtitleTextStyle">@style/ActionBarSubtitleTextStyle</item> -->
+        <!-- <item name="android:displayOptions">showHome|useLogo</item> -->
+
+        <!-- Set a custom icon for the app in the Action Bar -->
+        <item name="android:icon">@drawable/ic_launcher_foreground</item>
+    </style>
+</resources>
