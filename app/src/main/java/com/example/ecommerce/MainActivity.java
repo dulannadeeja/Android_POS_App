@@ -12,6 +12,7 @@ import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
 import com.example.ecommerce.ui.cart.CartFragment;
+import com.example.ecommerce.ui.checkout.CheckoutFragment;
 import com.example.ecommerce.ui.products.ProductsFragment;
 import com.example.ecommerce.ui.summary.SummaryFragment;
 import com.example.ecommerce.utils.DatabaseHelper;

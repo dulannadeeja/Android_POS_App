@@ -7,6 +7,7 @@
     android:paddingHorizontal="15dp"
     android:paddingVertical="15dp"
     android:id="@+id/product_Item"
+    android:background="?attr/selectableItemBackground"
     >
 
     <ImageView

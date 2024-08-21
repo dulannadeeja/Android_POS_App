@@ -2,6 +2,7 @@ package com.example.ecommerce.ui.summary;
 
 import android.os.Bundle;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
@@ -11,7 +12,10 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
+import com.example.ecommerce.MainActivity;
 import com.example.ecommerce.R;
+import com.example.ecommerce.databinding.FragmentSummaryBinding;
+import com.example.ecommerce.ui.products.ProductsFragment;
 import com.google.android.material.appbar.MaterialToolbar;
 
 public class SummaryFragment extends Fragment {
@@ -19,6 +23,15 @@ public class SummaryFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        OnBackPressedCallback callback = new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                // Handle the back button event
+                ((MainActivity) getActivity()).loadFragment(new ProductsFragment());
+            }
+        };
+        requireActivity().getOnBackPressedDispatcher().addCallback(this, callback);
     }
 
     @Override
@@ -31,6 +44,9 @@ public class SummaryFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+
+        FragmentSummaryBinding binding = FragmentSummaryBinding.bind(view);
+
         MaterialToolbar toolbar = view.findViewById(R.id.summary_toolbar);
         toolbar.inflateMenu(R.menu.menu_summary_appbar);
         toolbar.setTitle("Summary");
@@ -42,6 +58,10 @@ public class SummaryFragment extends Fragment {
             } else {
                 return false;
             }
+        });
+
+        binding.newOrderButton.setOnClickListener(v -> {
+            ((MainActivity) requireActivity()).loadFragment(new ProductsFragment());
         });
 
     }
