@@ -39,4 +39,5 @@
         <!-- Set a custom icon for the app in the Action Bar -->
         <item name="android:icon">@drawable/ic_launcher_foreground</item>
     </style>
+
 </resources>

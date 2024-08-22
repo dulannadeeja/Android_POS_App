@@ -17,10 +17,14 @@ import android.widget.Toast;
 import com.example.ecommerce.MainActivity;
 import com.example.ecommerce.R;
 import com.example.ecommerce.dao.CartDao;
+import com.example.ecommerce.dao.DiscountDao;
 import com.example.ecommerce.dao.ICartDao;
+import com.example.ecommerce.dao.IDiscountDao;
 import com.example.ecommerce.databinding.FragmentCheckoutBinding;
 import com.example.ecommerce.repository.CartRepository;
+import com.example.ecommerce.repository.DiscountRepository;
 import com.example.ecommerce.repository.ICartRepository;
+import com.example.ecommerce.repository.IDiscountRepository;
 import com.example.ecommerce.ui.cart.CartFragment;
 import com.example.ecommerce.ui.cart.CartViewModel;
 import com.example.ecommerce.ui.cart.CartViewModelFactory;
@@ -34,6 +38,8 @@ public class CheckoutFragment extends Fragment {
     private DatabaseHelper databaseHelper;
     private ICartDao cartDao;
     private ICartRepository cartRepository;
+    private IDiscountDao discountDao;
+    private IDiscountRepository discountRepository;
     private CartViewModel cartViewModel;
 
     @Override
@@ -89,8 +95,11 @@ public class CheckoutFragment extends Fragment {
         cartDao = new CartDao(databaseHelper);
         cartRepository = new CartRepository(cartDao);
 
+        discountDao = new DiscountDao(databaseHelper);
+        discountRepository = new DiscountRepository(discountDao);
+
         // Initialize the cart view model
-        cartViewModel = new ViewModelProvider(this, new CartViewModelFactory(cartRepository)).get(CartViewModel.class);
+        cartViewModel = new ViewModelProvider(this, new CartViewModelFactory(cartRepository,discountRepository)).get(CartViewModel.class);
 
         // Fetch cart
         cartViewModel.getCart().observe(getViewLifecycleOwner(), cart -> {

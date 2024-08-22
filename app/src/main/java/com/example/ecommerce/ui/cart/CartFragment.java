@@ -14,13 +14,17 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.ecommerce.dao.DiscountDao;
+import com.example.ecommerce.dao.IDiscountDao;
+import com.example.ecommerce.repository.DiscountRepository;
+import com.example.ecommerce.repository.IDiscountRepository;
+import com.example.ecommerce.ui.discount.DiscountPopupFragment;
 import com.example.ecommerce.MainActivity;
 import com.example.ecommerce.R;
 import com.example.ecommerce.dao.CartDao;
 import com.example.ecommerce.dao.ICartDao;
 import com.example.ecommerce.databinding.FragmentCartBinding;
 import com.example.ecommerce.model.CartItem;
-import com.example.ecommerce.model.Product;
 import com.example.ecommerce.repository.CartRepository;
 import com.example.ecommerce.repository.ICartRepository;
 import com.example.ecommerce.ui.checkout.CheckoutFragment;
@@ -38,6 +42,8 @@ public class CartFragment extends Fragment implements OnItemClickListener {
     private DatabaseHelper databaseHelper;
     private ICartDao cartDao;
     private ICartRepository cartRepository;
+    private IDiscountDao discountDao;
+    private IDiscountRepository discountRepository;
     private CartViewModel cartViewModel;
 
     @Override
@@ -99,7 +105,9 @@ public class CartFragment extends Fragment implements OnItemClickListener {
                 Toast.makeText(getContext(), "New user clicked", Toast.LENGTH_SHORT).show();
                 return true;
             } else if (item.getItemId() == R.id.categories) {
-                Toast.makeText(getContext(), "Categories clicked", Toast.LENGTH_SHORT).show();
+                // Show the popup fragment
+                    DiscountPopupFragment popupFragment = new DiscountPopupFragment();
+                    popupFragment.show(getParentFragmentManager(), "DiscountPopupFragment");
                 return true;
             } else if (item.getItemId() == R.id.settings) {
                 Toast.makeText(getContext(), "Settings clicked", Toast.LENGTH_SHORT).show();
@@ -118,8 +126,11 @@ public class CartFragment extends Fragment implements OnItemClickListener {
         cartDao = new CartDao(databaseHelper);
         cartRepository = new CartRepository(cartDao);
 
+        discountDao = new DiscountDao(databaseHelper);
+        discountRepository = new DiscountRepository(discountDao);
+
         // Initialize the cart view model
-        cartViewModel = new ViewModelProvider(this, new CartViewModelFactory(cartRepository)).get(CartViewModel.class);
+        cartViewModel = new ViewModelProvider(this, new CartViewModelFactory(cartRepository,discountRepository)).get(CartViewModel.class);
 
         // Initialize the cart items adapter
         CartItemsAdapter cartItemsAdapter = new CartItemsAdapter(this, getContext(), new ArrayList<CartItem>());
@@ -133,6 +144,12 @@ public class CartFragment extends Fragment implements OnItemClickListener {
             binding.tvTaxAmount.setText(String.valueOf(cart.getCartTotalTax()));
             binding.tvTotalAmount.setText(String.valueOf(cart.getCartTotalPrice()));
             binding.tvSubTotalAmount.setText(String.valueOf(cart.getCartSubTotalPrice()));
+            binding.tvDiscountAmount.setText(String.valueOf(cart.getDiscountValue()));
+            if(cart.getDiscountValue() > 0) {
+                binding.discountContainer.setVisibility(View.VISIBLE);
+            } else {
+                binding.discountContainer.setVisibility(View.GONE);
+            }
             if(cart.getCartItems().isEmpty()) {
                 // disable the charge button
                 binding.chargeButton.setEnabled(false);

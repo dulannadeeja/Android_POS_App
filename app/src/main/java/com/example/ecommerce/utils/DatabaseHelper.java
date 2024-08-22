@@ -24,11 +24,25 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public static final String COLUMN_PRODUCT_BRAND = "brand";
     public static final String COLUMN_PRODUCT_CATEGORY = "category";
 
+    // Discounts table
+    public static final String TABLE_DISCOUNTS = "discounts";
+    public static final String COLUMN_DISCOUNT_ID = "discount_id";
+    public static final String COLUMN_DISCOUNT_TYPE = "type";
+    public static final String COLUMN_DISCOUNT_VALUE = "value";
+    public static final String COLUMN_START_DATE = "start_date";
+    public static final String COLUMN_END_DATE = "end_date";
+    public static final String COLUMN_IS_ACTIVE = "is_active";
+
     // Orders table
     public static final String TABLE_ORDERS = "orders";
     public static final String COLUMN_ORDER_ID = "order_id";
+    public static final String COLUMN_ORDER_DISCOUNT_ID = "discount_id";
     public static final String COLUMN_ORDER_DATE = "date";
-    public static final String COLUMN_TOTAL_PRICE = "total_price";
+    public static final String COLUMN_ORDER_SUB_TOTAL = "sub_total";
+    public static final String COLUMN_ORDER_TAX = "tax";
+    public static final String COLUMN_ORDER_TOTAL_PRICE = "total_price";
+    public static final String COLUMN_ORDER_PAYMENT_METHOD = "payment_method";
+    public static final String COLUMN_ORDER_AMOUNT_PAID = "amount_paid";
     public static final String COLUMN_ORDER_STATUS = "status";
 
     // OrderItems table
@@ -69,19 +83,38 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             COLUMN_PRODUCT_CATEGORY
     );
 
-    // SQL to create orders table
-    private static final String CREATE_TABLE_ORDERS = String.format(
+    // SQL to create discounts table
+    private static final String CREATE_TABLE_DISCOUNTS = String.format(
             "CREATE TABLE %s ("
-                    + "%s TEXT PRIMARY KEY, "
+                    + "%s INTEGER PRIMARY KEY AUTOINCREMENT, "
+                    + "%s TEXT, "
                     + "%s REAL, "
                     + "%s TEXT, "
-                    + "%s TEXT);",
-            TABLE_ORDERS,
-            COLUMN_ORDER_ID,
-            COLUMN_TOTAL_PRICE,
-            COLUMN_ORDER_STATUS,
-            COLUMN_ORDER_DATE
+                    + "%s TEXT, "
+                    + "%s INTEGER);",
+            TABLE_DISCOUNTS,
+            COLUMN_DISCOUNT_ID,
+            COLUMN_DISCOUNT_TYPE,
+            COLUMN_DISCOUNT_VALUE,
+            COLUMN_START_DATE,
+            COLUMN_END_DATE,
+            COLUMN_IS_ACTIVE
     );
+
+    // SQL to create orders table
+    private static final String CREATE_TABLE_ORDERS = "CREATE TABLE "
+            + TABLE_ORDERS + " ("
+            + COLUMN_ORDER_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, "
+            + COLUMN_ORDER_DISCOUNT_ID + " INTEGER, "
+            + COLUMN_ORDER_DATE + " TEXT, "
+            + COLUMN_ORDER_SUB_TOTAL + " REAL, "
+            + COLUMN_ORDER_TAX + " REAL, "
+            + COLUMN_ORDER_TOTAL_PRICE + " REAL, "
+            + COLUMN_ORDER_PAYMENT_METHOD + " TEXT, "
+            + COLUMN_ORDER_AMOUNT_PAID + " REAL, "
+            + COLUMN_ORDER_STATUS + " TEXT, "
+            + "FOREIGN KEY(" + COLUMN_ORDER_DISCOUNT_ID + ") REFERENCES " + TABLE_DISCOUNTS + "(" + COLUMN_DISCOUNT_ID + ")"
+            + ");";
 
     // SQL to create order_items table
     private static final String CREATE_TABLE_ORDER_ITEMS = "CREATE TABLE "
@@ -111,6 +144,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     @Override
     public void onCreate(SQLiteDatabase sqLiteDatabase) {
         sqLiteDatabase.execSQL(CREATE_TABLE_PRODUCTS);
+        sqLiteDatabase.execSQL(CREATE_TABLE_DISCOUNTS);
         sqLiteDatabase.execSQL(CREATE_TABLE_ORDERS);
         sqLiteDatabase.execSQL(CREATE_TABLE_ORDER_ITEMS);
         sqLiteDatabase.execSQL(CREATE_TABLE_CART_ITEMS);
@@ -124,6 +158,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                         + newVersion + ", which will destroy all old data");
 
         sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + TABLE_PRODUCTS);
+        sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + TABLE_DISCOUNTS);
         sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + TABLE_ORDERS);
         sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + TABLE_ORDER_ITEMS);
         sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + TABLE_CART_ITEMS);

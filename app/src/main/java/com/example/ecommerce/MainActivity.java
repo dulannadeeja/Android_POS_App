@@ -39,6 +39,9 @@ public class MainActivity extends AppCompatActivity {
 
         // Initialize the database helper
         databaseHelper = new DatabaseHelper(this);
+
+        // Initialize the database
+        databaseHelper.getWritableDatabase();
     }
 
     public void loadFragment(Fragment fragment) {

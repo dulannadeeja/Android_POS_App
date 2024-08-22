@@ -17,12 +17,16 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.ecommerce.dao.CartDao;
+import com.example.ecommerce.dao.DiscountDao;
 import com.example.ecommerce.dao.ICartDao;
+import com.example.ecommerce.dao.IDiscountDao;
 import com.example.ecommerce.dao.IProductDao;
 import com.example.ecommerce.dao.ProductDao;
 import com.example.ecommerce.model.Product;
 import com.example.ecommerce.repository.CartRepository;
+import com.example.ecommerce.repository.DiscountRepository;
 import com.example.ecommerce.repository.ICartRepository;
+import com.example.ecommerce.repository.IDiscountRepository;
 import com.example.ecommerce.repository.IProductRepository;
 import com.example.ecommerce.repository.ProductRepository;
 import com.example.ecommerce.ui.cart.CartFragment;
@@ -47,7 +51,10 @@ public class ProductsFragment extends Fragment implements OnItemClickListener {
     private IProductRepository productRepository;
     private ICartDao cartDao;
     private ICartRepository cartRepository;
+    private IDiscountDao discountDao;
+    private IDiscountRepository discountRepository;
     private CartViewModel cartViewModel;
+
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -99,12 +106,14 @@ public class ProductsFragment extends Fragment implements OnItemClickListener {
         productRepository = new ProductRepository(productDao);
         cartDao = new CartDao(databaseHelper);
         cartRepository = new CartRepository(cartDao);
+        discountDao = new DiscountDao(databaseHelper);
+        discountRepository = new DiscountRepository(discountDao);
 
         // Initialize ViewModel with repository
         productsViewModel = new ViewModelProvider(this, new ProductsViewModelFactory(productRepository)).get(ProductsViewModel.class);
 
         // Initialize CartViewModel with repository
-        cartViewModel = new ViewModelProvider(this, new CartViewModelFactory(cartRepository)).get(CartViewModel.class);
+        cartViewModel = new ViewModelProvider(this, new CartViewModelFactory(cartRepository,discountRepository)).get(CartViewModel.class);
 
         // Initialize RecyclerView and Adapter
         RecyclerView productsRecyclerView = view.findViewById(R.id.products_recycler_view);

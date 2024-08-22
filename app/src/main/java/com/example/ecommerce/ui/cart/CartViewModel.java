@@ -6,18 +6,23 @@ import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
 import com.example.ecommerce.model.Cart;
+import com.example.ecommerce.model.Discount;
 import com.example.ecommerce.repository.ICartRepository;
+import com.example.ecommerce.repository.IDiscountRepository;
 
 public class CartViewModel extends ViewModel {
     private final ICartRepository repository;
+    private final IDiscountRepository discountRepository;
     private static final String TAG = "cartViewModel";
     private static final MutableLiveData<Boolean> isLoading = new MutableLiveData<>(false);
     private static final MutableLiveData<String> errorMessage = new MutableLiveData<>("");
     private static final MutableLiveData<Cart> cart = new MutableLiveData<>();
 
-    public CartViewModel(ICartRepository repository) {
+    public CartViewModel(ICartRepository repository, IDiscountRepository discountRepository) {
         this.repository = repository;
+        this.discountRepository = discountRepository;
         setCart();
+        setDiscount();
     }
 
     public void setCart() {
@@ -28,6 +33,25 @@ public class CartViewModel extends ViewModel {
         } catch (Exception e) {
             Log.e("cartViewModel", "Error fetching cart", e);
             errorMessage.setValue("Error fetching cart");
+        } finally {
+            isLoading.setValue(false);
+        }
+    }
+
+    public void setDiscount() {
+        try {
+            isLoading.setValue(true);
+            Discount currentDiscount = discountRepository.getCurrentDiscount();
+            if(currentDiscount != null && cart.getValue() != null) {
+                double discountAmount = discountRepository.getDiscountAmount(cart.getValue().getCartTotalPrice());
+                cart.getValue().setDiscountValue(discountAmount);
+                cart.getValue().setDiscountId(currentDiscount.getDiscountId());
+                cart.getValue().calculateCartTotalPrice();
+            }
+            errorMessage.setValue("");
+        } catch (Exception e) {
+            Log.e("cartViewModel", "Error fetching discount", e);
+            errorMessage.setValue("Error fetching discount");
         } finally {
             isLoading.setValue(false);
         }

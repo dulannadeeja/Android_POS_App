@@ -9,7 +9,7 @@ import java.util.ArrayList;
 
 public class CartRepository implements ICartRepository{
 
-    ICartDao cartDao;
+    private ICartDao cartDao;
 
     public CartRepository(ICartDao cartDao) {
         this.cartDao = cartDao;
@@ -26,7 +26,7 @@ public class CartRepository implements ICartRepository{
             totalItems += cartItem.getQuantity();
             cartSubTotalPrice += cartItem.getQuantity() * (cartItem.getPrice() - cartItem.getDiscount());
         }
-        return new Cart(totalItems,cartSubTotalPrice,cartItems,cartTotalTax);
+        return new Cart(totalItems,cartSubTotalPrice,cartItems,cartTotalTax,-1,0);
     }
 
     @Override
