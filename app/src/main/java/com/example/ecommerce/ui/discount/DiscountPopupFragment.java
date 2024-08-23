@@ -54,7 +54,7 @@ public class DiscountPopupFragment extends DialogFragment {
             }
         });
 
-        discountViewModel = new ViewModelProvider(this, App.appModule.provideDiscountViewModelFactory()).get(DiscountViewModel.class);
+        discountViewModel = new ViewModelProvider(requireActivity(), App.appModule.provideDiscountViewModelFactory()).get(DiscountViewModel.class);
 
         binding.oneButton.setOnClickListener(v -> {
             Double currentDiscountValue = discountViewModel.getDiscountValue().getValue();

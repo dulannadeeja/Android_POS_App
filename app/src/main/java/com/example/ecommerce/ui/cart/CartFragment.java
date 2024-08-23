@@ -43,6 +43,7 @@ public class CartFragment extends Fragment implements OnItemClickListener {
 
     private static final String TAG = "CartFragment";
     private CartViewModel cartViewModel;
+    private DiscountViewModel discountViewModel;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -122,6 +123,9 @@ public class CartFragment extends Fragment implements OnItemClickListener {
         // Initialize the cart view model
         cartViewModel = new ViewModelProvider(this, App.appModule.provideCartViewModelFactory()).get(CartViewModel.class);
 
+        // Initialize the discount view model
+        discountViewModel = new ViewModelProvider(requireActivity(), App.appModule.provideDiscountViewModelFactory()).get(DiscountViewModel.class);
+
         // Initialize the cart items adapter
         CartItemsAdapter cartItemsAdapter = new CartItemsAdapter(this, getContext(), new ArrayList<CartItem>());
         binding.cartItemsRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
@@ -129,6 +133,7 @@ public class CartFragment extends Fragment implements OnItemClickListener {
 
         // Fetch cart
         cartViewModel.getCart().observe(getViewLifecycleOwner(), cart -> {
+            Log.d(TAG, "cart has been changed: " + cart);
             cartItemsAdapter.setCartItems(cart.getCartItems());
             tvItemCount.setText(String.valueOf(cart.getTotalItems()));
             binding.tvTaxAmount.setText(String.valueOf(cart.getCartTotalTax()));
@@ -150,6 +155,11 @@ public class CartFragment extends Fragment implements OnItemClickListener {
                 binding.chargeButton.setText("CHARGE " + cart.getCartTotalPrice());
 
             }
+        });
+
+        discountViewModel.getDiscount().observe(getViewLifecycleOwner(), discount -> {
+            Log.d(TAG, "discount has been changed: " + discount);
+            cartViewModel.setDiscount();
         });
     }
 

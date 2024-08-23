@@ -41,6 +41,7 @@ public class CartViewModel extends ViewModel {
 
     public void setDiscount() {
         try {
+            Log.d(TAG, "setDiscount:");
             isLoading.setValue(true);
             if(cart.getValue() == null || cart.getValue().getCartTotalPrice() == 0 ) {
                 return;
@@ -51,11 +52,16 @@ public class CartViewModel extends ViewModel {
                     cart.getValue().setDiscountValue(discountAmount);
                     cart.getValue().setDiscountId(discountId);
                     cart.getValue().calculateCartTotalPrice();
+                    cart.setValue(cart.getValue().clone());
                 }
 
                 @Override
                 public void onDiscountError(String error) {
                     errorMessage.setValue(error);
+                    cart.getValue().setDiscountValue(0);
+                    cart.getValue().setDiscountId(-1);
+                    cart.getValue().calculateCartTotalPrice();
+                    cart.setValue(cart.getValue().clone());
                 }
             });
 

@@ -2,7 +2,7 @@ package com.example.ecommerce.model;
 
 import java.util.ArrayList;
 
-public class Cart {
+public class Cart implements Cloneable{
     private int totalItems;
     private double cartSubTotalPrice;
     private int discount_id;
@@ -86,4 +86,13 @@ public class Cart {
         }
     }
 
+    @Override
+    public Cart clone() {
+        try {
+            Cart clone = (Cart) super.clone();
+            return clone;
+        } catch (CloneNotSupportedException e) {
+            throw new AssertionError();
+        }
+    }
 }
