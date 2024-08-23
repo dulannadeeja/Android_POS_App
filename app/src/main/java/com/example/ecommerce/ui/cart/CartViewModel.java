@@ -78,7 +78,8 @@ public class CartViewModel extends ViewModel {
         try {
             isLoading.setValue(true);
             repository.addProductToCart(productId);
-            cart.setValue(repository.getCart());
+            setCart();
+            setDiscount();
             errorMessage.setValue("");
         } catch (Exception e) {
             Log.e("cartViewModel", "Error adding product to cart", e);
@@ -92,7 +93,8 @@ public class CartViewModel extends ViewModel {
         try {
             isLoading.setValue(true);
             repository.removeProductFromCart(productId);
-            cart.setValue(repository.getCart());
+            setCart();
+            setDiscount();
             errorMessage.setValue("");
         } catch (Exception e) {
             Log.e("cartViewModel", "Error removing product from cart", e);
