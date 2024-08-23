@@ -78,7 +78,12 @@ public class Cart {
     }
 
     public void calculateCartTotalPrice() {
-        this.cartTotalPrice = this.cartSubTotalPrice + this.cartTotalTax - this.discount_value;
+        double totalPrice = this.cartSubTotalPrice + this.cartTotalTax - this.discount_value;
+        if(totalPrice < 0) {
+            this.cartTotalPrice = 0;
+        } else {
+            this.cartTotalPrice = totalPrice;
+        }
     }
 
 }

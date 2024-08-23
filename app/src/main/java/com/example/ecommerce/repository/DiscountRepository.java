@@ -45,16 +45,27 @@ public class DiscountRepository implements IDiscountRepository {
     }
 
     @Override
-    public double getDiscountAmount(double totalAmount) throws Exception {
+    public double getDiscountAmount(double totalAmount, IApplyDiscountCallback callback) throws Exception {
         try {
             Discount currentDiscount = getCurrentDiscount();
             if(currentDiscount == null) {
-                return 0.0;
+                callback.onDiscountError("No active discount found");
+                return totalAmount;
             }
-            return totalAmount * currentDiscount.getDiscountValue();
+            switch (currentDiscount.getDiscountType()){
+                case "percentage":
+                    callback.onDiscountApplied(totalAmount * currentDiscount.getDiscountValue() / 100, currentDiscount.getDiscountId());
+                    break;
+                case "fixed":
+                    callback.onDiscountApplied(currentDiscount.getDiscountValue(), currentDiscount.getDiscountId());
+                    break;
+                default:
+                    callback.onDiscountError("Invalid discount type");
+            }
         } catch (Exception e) {
             throw new RuntimeException("Error getting discount amount", e);
         }
+        return totalAmount;
     }
 
     @Override

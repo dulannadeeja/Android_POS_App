@@ -28,6 +28,8 @@ import com.example.ecommerce.model.CartItem;
 import com.example.ecommerce.repository.CartRepository;
 import com.example.ecommerce.repository.ICartRepository;
 import com.example.ecommerce.ui.checkout.CheckoutFragment;
+import com.example.ecommerce.ui.discount.DiscountViewModel;
+import com.example.ecommerce.ui.discount.DiscountViewModelFactory;
 import com.example.ecommerce.ui.products.OnItemClickListener;
 import com.example.ecommerce.ui.products.ProductsFragment;
 import com.example.ecommerce.utils.CartItemsAdapter;

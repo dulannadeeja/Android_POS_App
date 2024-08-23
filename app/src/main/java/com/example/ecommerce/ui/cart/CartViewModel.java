@@ -7,6 +7,7 @@ import androidx.lifecycle.ViewModel;
 
 import com.example.ecommerce.model.Cart;
 import com.example.ecommerce.model.Discount;
+import com.example.ecommerce.repository.IApplyDiscountCallback;
 import com.example.ecommerce.repository.ICartRepository;
 import com.example.ecommerce.repository.IDiscountRepository;
 
@@ -41,13 +42,23 @@ public class CartViewModel extends ViewModel {
     public void setDiscount() {
         try {
             isLoading.setValue(true);
-            Discount currentDiscount = discountRepository.getCurrentDiscount();
-            if(currentDiscount != null && cart.getValue() != null) {
-                double discountAmount = discountRepository.getDiscountAmount(cart.getValue().getCartTotalPrice());
-                cart.getValue().setDiscountValue(discountAmount);
-                cart.getValue().setDiscountId(currentDiscount.getDiscountId());
-                cart.getValue().calculateCartTotalPrice();
+            if(cart.getValue() == null || cart.getValue().getCartTotalPrice() == 0 ) {
+                return;
             }
+            discountRepository.getDiscountAmount(cart.getValue().getCartTotalPrice(), new IApplyDiscountCallback() {
+                @Override
+                public void onDiscountApplied(double discountAmount, int discountId) {
+                    cart.getValue().setDiscountValue(discountAmount);
+                    cart.getValue().setDiscountId(discountId);
+                    cart.getValue().calculateCartTotalPrice();
+                }
+
+                @Override
+                public void onDiscountError(String error) {
+                    errorMessage.setValue(error);
+                }
+            });
+
             errorMessage.setValue("");
         } catch (Exception e) {
             Log.e("cartViewModel", "Error fetching discount", e);
