@@ -14,6 +14,7 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.ecommerce.App;
 import com.example.ecommerce.dao.DiscountDao;
 import com.example.ecommerce.dao.IDiscountDao;
 import com.example.ecommerce.repository.DiscountRepository;
@@ -41,11 +42,6 @@ import java.util.ArrayList;
 public class CartFragment extends Fragment implements OnItemClickListener {
 
     private static final String TAG = "CartFragment";
-    private DatabaseHelper databaseHelper;
-    private ICartDao cartDao;
-    private ICartRepository cartRepository;
-    private IDiscountDao discountDao;
-    private IDiscountRepository discountRepository;
     private CartViewModel cartViewModel;
 
     @Override
@@ -123,16 +119,8 @@ public class CartFragment extends Fragment implements OnItemClickListener {
             ((MainActivity) requireActivity()).loadFragment(new CheckoutFragment());
         });
 
-        // Initialize the database helper and DAO objects for the cart
-        databaseHelper = MainActivity.databaseHelper;
-        cartDao = new CartDao(databaseHelper);
-        cartRepository = new CartRepository(cartDao);
-
-        discountDao = new DiscountDao(databaseHelper);
-        discountRepository = new DiscountRepository(discountDao);
-
         // Initialize the cart view model
-        cartViewModel = new ViewModelProvider(this, new CartViewModelFactory(cartRepository,discountRepository)).get(CartViewModel.class);
+        cartViewModel = new ViewModelProvider(this, App.appModule.provideCartViewModelFactory()).get(CartViewModel.class);
 
         // Initialize the cart items adapter
         CartItemsAdapter cartItemsAdapter = new CartItemsAdapter(this, getContext(), new ArrayList<CartItem>());

@@ -19,8 +19,6 @@ import com.example.ecommerce.utils.DatabaseHelper;
 
 public class MainActivity extends AppCompatActivity {
 
-    public static DatabaseHelper databaseHelper;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -36,12 +34,6 @@ public class MainActivity extends AppCompatActivity {
         if(savedInstanceState == null) {
             loadFragment(new ProductsFragment());
         }
-
-        // Initialize the database helper
-        databaseHelper = new DatabaseHelper(this);
-
-        // Initialize the database
-        databaseHelper.getWritableDatabase();
     }
 
     public void loadFragment(Fragment fragment) {

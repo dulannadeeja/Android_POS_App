@@ -11,6 +11,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
+import com.example.ecommerce.App;
 import com.example.ecommerce.MainActivity;
 import com.example.ecommerce.R;
 import com.example.ecommerce.dao.DiscountDao;
@@ -26,9 +27,6 @@ import java.util.Date;
 public class DiscountPopupFragment extends DialogFragment {
 
     private static final String TAG = "DiscountPopupFragment";
-    private static DatabaseHelper databaseHelper;
-    private static IDiscountDao discountDao;
-    private static IDiscountRepository discountRepository;
     private static DiscountViewModel discountViewModel;
 
     @Override
@@ -56,10 +54,7 @@ public class DiscountPopupFragment extends DialogFragment {
             }
         });
 
-        databaseHelper = MainActivity.databaseHelper;
-        discountDao = new DiscountDao(databaseHelper);
-        discountRepository = new DiscountRepository(discountDao);
-        discountViewModel = new ViewModelProvider(this, new DiscountViewModelFactory(discountRepository)).get(DiscountViewModel.class);
+        discountViewModel = new ViewModelProvider(this, App.appModule.provideDiscountViewModelFactory()).get(DiscountViewModel.class);
 
         binding.oneButton.setOnClickListener(v -> {
             Double currentDiscountValue = discountViewModel.getDiscountValue().getValue();

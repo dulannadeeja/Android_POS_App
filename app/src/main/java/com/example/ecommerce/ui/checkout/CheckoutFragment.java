@@ -14,6 +14,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
+import com.example.ecommerce.App;
 import com.example.ecommerce.MainActivity;
 import com.example.ecommerce.R;
 import com.example.ecommerce.dao.CartDao;
@@ -91,7 +92,7 @@ public class CheckoutFragment extends Fragment {
         });
 
         // Initialize the database helper and DAO objects for the cart
-        databaseHelper = MainActivity.databaseHelper;
+        databaseHelper = App.appModule.provideDatabaseHelper();
         cartDao = new CartDao(databaseHelper);
         cartRepository = new CartRepository(cartDao);
 
