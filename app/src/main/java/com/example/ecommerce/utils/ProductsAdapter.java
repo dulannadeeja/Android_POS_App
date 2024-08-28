@@ -60,6 +60,7 @@ public class ProductsAdapter extends RecyclerView.Adapter<ProductsAdapter.ViewHo
         private final ImageView ivProductImage;
         private final TextView tvProductName, tvProductPrice, tvProductQuantity;
         private final ConstraintLayout clProductItem;
+        private final ImageView productInfo;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -69,6 +70,7 @@ public class ProductsAdapter extends RecyclerView.Adapter<ProductsAdapter.ViewHo
             tvProductName = itemView.findViewById(R.id.tv_product_name);
             tvProductPrice = itemView.findViewById(R.id.tv_product_price);
             tvProductQuantity = itemView.findViewById(R.id.tv_product_quantity);
+            productInfo = itemView.findViewById(R.id.product_info);
 
         }
 
@@ -76,17 +78,25 @@ public class ProductsAdapter extends RecyclerView.Adapter<ProductsAdapter.ViewHo
             clProductItem.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    listener.onItemClick(item.getProductId());
+                    listener.onItemClick(item.get_productId());
                 }
             });
 
             clProductItem.setOnLongClickListener(new View.OnLongClickListener(){
                 @Override
                 public boolean onLongClick(View v) {
-                    listener.onItemLongClick(item.getProductId());
+                    listener.onItemLongClick(item.get_productId());
                     return true;
                 }
             });
+
+            productInfo.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    listener.onProductInfoClick(item);
+                }
+            });
+
         }
     }
 

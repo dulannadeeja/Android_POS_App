@@ -27,10 +27,10 @@ public class ProductDao implements IProductDao {
         try (SQLiteDatabase db = databaseHelper.getWritableDatabase()) {
 
             ContentValues values = new ContentValues();
-            values.put(DatabaseHelper.COLUMN_PRODUCT_ID, product.getProductId());
             values.put(DatabaseHelper.COLUMN_PRODUCT_NAME, product.getProductName());
             values.put(DatabaseHelper.COLUMN_PRODUCT_DESCRIPTION, product.getProductDescription());
             values.put(DatabaseHelper.COLUMN_PRODUCT_PRICE, product.getProductPrice());
+            values.put(DatabaseHelper.COLUMN_PRODUCT_COST, product.getProductCost());
             values.put(DatabaseHelper.COLUMN_PRODUCT_IMAGE, product.getProductImage());
             values.put(DatabaseHelper.COLUMN_PRODUCT_DISCOUNT, product.getProductDiscount());
             values.put(DatabaseHelper.COLUMN_PRODUCT_QUANTITY, product.getProductQuantity());
@@ -47,7 +47,22 @@ public class ProductDao implements IProductDao {
 
     @Override
     public void updateProduct(Product product) {
-        // TODO: Implement update product method here
+        try (SQLiteDatabase db = databaseHelper.getWritableDatabase()) {
+            ContentValues values = new ContentValues();
+            values.put(DatabaseHelper.COLUMN_PRODUCT_NAME, product.getProductName());
+            values.put(DatabaseHelper.COLUMN_PRODUCT_DESCRIPTION, product.getProductDescription());
+            values.put(DatabaseHelper.COLUMN_PRODUCT_PRICE, product.getProductPrice());
+            values.put(DatabaseHelper.COLUMN_PRODUCT_COST, product.getProductCost());
+            values.put(DatabaseHelper.COLUMN_PRODUCT_IMAGE, product.getProductImage());
+            values.put(DatabaseHelper.COLUMN_PRODUCT_DISCOUNT, product.getProductDiscount());
+            values.put(DatabaseHelper.COLUMN_PRODUCT_QUANTITY, product.getProductQuantity());
+            values.put(DatabaseHelper.COLUMN_PRODUCT_BRAND, product.getProductBrand());
+            values.put(DatabaseHelper.COLUMN_PRODUCT_CATEGORY, product.getProductCategory());
+
+            db.update(DatabaseHelper.TABLE_PRODUCTS, values, DatabaseHelper.COLUMN_PRODUCT_ID + " = " + product.get_productId(), null);
+        } catch (Exception e) {
+            throw new RuntimeException("Error updating product", e);
+        }
     }
 
     @Override
@@ -65,17 +80,25 @@ public class ProductDao implements IProductDao {
             // loop through the cursor
             if (cursor.moveToFirst()) {
                 do {
-                    Product product = new Product(
-                            cursor.getInt(cursor.getColumnIndex(DatabaseHelper.COLUMN_PRODUCT_ID)),
-                            cursor.getString(cursor.getColumnIndex(DatabaseHelper.COLUMN_PRODUCT_NAME)),
-                            cursor.getString(cursor.getColumnIndex(DatabaseHelper.COLUMN_PRODUCT_DESCRIPTION)),
-                            cursor.getDouble(cursor.getColumnIndex(DatabaseHelper.COLUMN_PRODUCT_PRICE)),
-                            cursor.getString(cursor.getColumnIndex(DatabaseHelper.COLUMN_PRODUCT_IMAGE)),
-                            cursor.getDouble(cursor.getColumnIndex(DatabaseHelper.COLUMN_PRODUCT_DISCOUNT)),
-                            cursor.getInt(cursor.getColumnIndex(DatabaseHelper.COLUMN_PRODUCT_QUANTITY)),
-                            cursor.getString(cursor.getColumnIndex(DatabaseHelper.COLUMN_PRODUCT_BRAND)),
-                            cursor.getString(cursor.getColumnIndex(DatabaseHelper.COLUMN_PRODUCT_CATEGORY))
-                    );
+                    Product product = new Product.ProductBuilder()
+                            .withProductId(cursor.getInt(cursor.getColumnIndex(DatabaseHelper.COLUMN_PRODUCT_ID)))
+                                    .withProductInfo(
+                                            cursor.getString(cursor.getColumnIndex(DatabaseHelper.COLUMN_PRODUCT_NAME)),
+                                            cursor.getString(cursor.getColumnIndex(DatabaseHelper.COLUMN_PRODUCT_DESCRIPTION)),
+                                            cursor.getString(cursor.getColumnIndex(DatabaseHelper.COLUMN_PRODUCT_BRAND)),
+                                            cursor.getString(cursor.getColumnIndex(DatabaseHelper.COLUMN_PRODUCT_CATEGORY))
+                                            )
+                                            .withDiscount(cursor.getDouble(cursor.getColumnIndex(DatabaseHelper.COLUMN_PRODUCT_DISCOUNT)))
+                                                    .withPricing(
+                                                            cursor.getDouble(cursor.getColumnIndex(DatabaseHelper.COLUMN_PRODUCT_COST)),
+                                                            cursor.getDouble(cursor.getColumnIndex(DatabaseHelper.COLUMN_PRODUCT_PRICE))
+                                                            )
+                                                            .withQuantity(cursor.getInt(cursor.getColumnIndex(DatabaseHelper.COLUMN_PRODUCT_QUANTITY)))
+                                                                    .withImage(cursor.getString(cursor.getColumnIndex(DatabaseHelper.COLUMN_PRODUCT_IMAGE)))
+                                                                            .buildProduct();
+
+
+
                     products.add(product);
                 } while (cursor.moveToNext());
 
@@ -95,17 +118,22 @@ public class ProductDao implements IProductDao {
         try (SQLiteDatabase db = databaseHelper.getReadableDatabase()) {
             Cursor cursor = db.rawQuery("SELECT * FROM " + DatabaseHelper.TABLE_PRODUCTS + " WHERE " + DatabaseHelper.COLUMN_PRODUCT_ID + " = " + productId, null);
             if (cursor.moveToFirst()) {
-                Product product = new Product(
-                        cursor.getInt(cursor.getColumnIndex(DatabaseHelper.COLUMN_PRODUCT_ID)),
-                        cursor.getString(cursor.getColumnIndex(DatabaseHelper.COLUMN_PRODUCT_NAME)),
-                        cursor.getString(cursor.getColumnIndex(DatabaseHelper.COLUMN_PRODUCT_DESCRIPTION)),
-                        cursor.getDouble(cursor.getColumnIndex(DatabaseHelper.COLUMN_PRODUCT_PRICE)),
-                        cursor.getString(cursor.getColumnIndex(DatabaseHelper.COLUMN_PRODUCT_IMAGE)),
-                        cursor.getDouble(cursor.getColumnIndex(DatabaseHelper.COLUMN_PRODUCT_DISCOUNT)),
-                        cursor.getInt(cursor.getColumnIndex(DatabaseHelper.COLUMN_PRODUCT_QUANTITY)),
-                        cursor.getString(cursor.getColumnIndex(DatabaseHelper.COLUMN_PRODUCT_BRAND)),
-                        cursor.getString(cursor.getColumnIndex(DatabaseHelper.COLUMN_PRODUCT_CATEGORY))
-                );
+                Product product = new Product.ProductBuilder()
+                        .withProductId(cursor.getInt(cursor.getColumnIndex(DatabaseHelper.COLUMN_PRODUCT_ID)))
+                                .withProductInfo(
+                                        cursor.getString(cursor.getColumnIndex(DatabaseHelper.COLUMN_PRODUCT_NAME)),
+                                        cursor.getString(cursor.getColumnIndex(DatabaseHelper.COLUMN_PRODUCT_DESCRIPTION)),
+                                        cursor.getString(cursor.getColumnIndex(DatabaseHelper.COLUMN_PRODUCT_BRAND)),
+                                        cursor.getString(cursor.getColumnIndex(DatabaseHelper.COLUMN_PRODUCT_CATEGORY))
+                                        )
+                                        .withDiscount(cursor.getDouble(cursor.getColumnIndex(DatabaseHelper.COLUMN_PRODUCT_DISCOUNT)))
+                                                .withPricing(
+                                                        cursor.getDouble(cursor.getColumnIndex(DatabaseHelper.COLUMN_PRODUCT_COST)),
+                                                        cursor.getDouble(cursor.getColumnIndex(DatabaseHelper.COLUMN_PRODUCT_PRICE))
+                                                        )
+                                                        .withQuantity(cursor.getInt(cursor.getColumnIndex(DatabaseHelper.COLUMN_PRODUCT_QUANTITY)))
+                                                                .withImage(cursor.getString(cursor.getColumnIndex(DatabaseHelper.COLUMN_PRODUCT_IMAGE)))
+                                                                        .buildProduct();
                 cursor.close();
                 return product;
             }
@@ -123,17 +151,22 @@ public class ProductDao implements IProductDao {
             ArrayList<Product> products = new ArrayList<>();
             if (cursor.moveToFirst()) {
                 do {
-                    Product product = new Product(
-                            cursor.getInt(cursor.getColumnIndex(DatabaseHelper.COLUMN_PRODUCT_ID)),
-                            cursor.getString(cursor.getColumnIndex(DatabaseHelper.COLUMN_PRODUCT_NAME)),
-                            cursor.getString(cursor.getColumnIndex(DatabaseHelper.COLUMN_PRODUCT_DESCRIPTION)),
-                            cursor.getDouble(cursor.getColumnIndex(DatabaseHelper.COLUMN_PRODUCT_PRICE)),
-                            cursor.getString(cursor.getColumnIndex(DatabaseHelper.COLUMN_PRODUCT_IMAGE)),
-                            cursor.getDouble(cursor.getColumnIndex(DatabaseHelper.COLUMN_PRODUCT_DISCOUNT)),
-                            cursor.getInt(cursor.getColumnIndex(DatabaseHelper.COLUMN_PRODUCT_QUANTITY)),
-                            cursor.getString(cursor.getColumnIndex(DatabaseHelper.COLUMN_PRODUCT_BRAND)),
-                            cursor.getString(cursor.getColumnIndex(DatabaseHelper.COLUMN_PRODUCT_CATEGORY))
-                    );
+                    Product product = new Product.ProductBuilder()
+                            .withProductId(cursor.getInt(cursor.getColumnIndex(DatabaseHelper.COLUMN_PRODUCT_ID)))
+                                    .withProductInfo(
+                                            cursor.getString(cursor.getColumnIndex(DatabaseHelper.COLUMN_PRODUCT_NAME)),
+                                            cursor.getString(cursor.getColumnIndex(DatabaseHelper.COLUMN_PRODUCT_DESCRIPTION)),
+                                            cursor.getString(cursor.getColumnIndex(DatabaseHelper.COLUMN_PRODUCT_BRAND)),
+                                            cursor.getString(cursor.getColumnIndex(DatabaseHelper.COLUMN_PRODUCT_CATEGORY))
+                                            )
+                                            .withDiscount(cursor.getDouble(cursor.getColumnIndex(DatabaseHelper.COLUMN_PRODUCT_DISCOUNT)))
+                                                    .withPricing(
+                                                            cursor.getDouble(cursor.getColumnIndex(DatabaseHelper.COLUMN_PRODUCT_COST)),
+                                                            cursor.getDouble(cursor.getColumnIndex(DatabaseHelper.COLUMN_PRODUCT_PRICE))
+                                                            )
+                                                            .withQuantity(cursor.getInt(cursor.getColumnIndex(DatabaseHelper.COLUMN_PRODUCT_QUANTITY)))
+                                                                    .withImage(cursor.getString(cursor.getColumnIndex(DatabaseHelper.COLUMN_PRODUCT_IMAGE)))
+                                                                            .buildProduct();
                     products.add(product);
                 } while (cursor.moveToNext());
                 cursor.close();

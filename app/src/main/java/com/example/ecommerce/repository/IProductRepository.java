@@ -10,6 +10,5 @@ public interface IProductRepository {
     void deleteProduct(Product product);
     ArrayList<Product> getAllProducts();
     Product getProductById(int productId);
-    void addStaticData();
     ArrayList<Product> getFilteredProducts(String keyword);
 }

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="brands">
+        <item>Nike</item>
+        <item>Adidas</item>
+        <item>Puma</item>
+        <item>Under Armour</item>
+        <item>Reebok</item>
+        <item>New Balance</item>
+        <item>ASICS</item>
+        <item>Sketchers</item>
+    </string-array>
+</resources>

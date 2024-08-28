@@ -15,26 +15,17 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.ecommerce.App;
-import com.example.ecommerce.dao.DiscountDao;
-import com.example.ecommerce.dao.IDiscountDao;
-import com.example.ecommerce.repository.DiscountRepository;
-import com.example.ecommerce.repository.IDiscountRepository;
+import com.example.ecommerce.model.Product;
 import com.example.ecommerce.ui.discount.DiscountPopupFragment;
 import com.example.ecommerce.MainActivity;
 import com.example.ecommerce.R;
-import com.example.ecommerce.dao.CartDao;
-import com.example.ecommerce.dao.ICartDao;
 import com.example.ecommerce.databinding.FragmentCartBinding;
 import com.example.ecommerce.model.CartItem;
-import com.example.ecommerce.repository.CartRepository;
-import com.example.ecommerce.repository.ICartRepository;
 import com.example.ecommerce.ui.checkout.CheckoutFragment;
 import com.example.ecommerce.ui.discount.DiscountViewModel;
-import com.example.ecommerce.ui.discount.DiscountViewModelFactory;
 import com.example.ecommerce.ui.products.OnItemClickListener;
 import com.example.ecommerce.ui.products.ProductsFragment;
 import com.example.ecommerce.utils.CartItemsAdapter;
-import com.example.ecommerce.utils.DatabaseHelper;
 import com.google.android.material.appbar.MaterialToolbar;
 
 import java.util.ArrayList;
@@ -172,5 +163,10 @@ public class CartFragment extends Fragment implements OnItemClickListener {
     public void onItemLongClick(int cartItemId) {
         cartViewModel.onRemoveFromCart(cartItemId);
         Toast.makeText(getContext(), "Cart item removed" + cartItemId, Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void onProductInfoClick(Product product) {
+        // Do nothing
     }
 }

@@ -23,7 +23,6 @@ public class ProductsViewModel extends ViewModel {
     public void setProducts() {
         try {
             isLoading.setValue(true);
-            repository.addStaticData();
             products.setValue(repository.getAllProducts());
             errorMessage.setValue("");
         } catch (Exception e) {

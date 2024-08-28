@@ -17,6 +17,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.ecommerce.App;
+import com.example.ecommerce.ProductInfoFragment;
 import com.example.ecommerce.dao.CartDao;
 import com.example.ecommerce.dao.DiscountDao;
 import com.example.ecommerce.dao.ICartDao;
@@ -37,6 +38,7 @@ import com.example.ecommerce.ui.checkout.CheckoutFragment;
 import com.example.ecommerce.MainActivity;
 import com.example.ecommerce.R;
 import com.example.ecommerce.databinding.FragmentProductsBinding;
+import com.example.ecommerce.ui.discount.DiscountPopupFragment;
 import com.example.ecommerce.utils.DatabaseHelper;
 import com.example.ecommerce.utils.ProductsAdapter;
 import com.google.android.material.appbar.MaterialToolbar;
@@ -73,6 +75,10 @@ public class ProductsFragment extends Fragment implements OnItemClickListener {
         toolbar.findViewById(R.id.go_to_cart).setOnClickListener(v -> {
             ((MainActivity) requireActivity()).loadFragment(new CartFragment());
         });
+        toolbar.setNavigationIcon(R.drawable.baseline_menu_24);
+        toolbar.setNavigationOnClickListener(v -> {
+            ((MainActivity) requireActivity()).openDrawer();
+        });
         TextView tvItemCount = toolbar.findViewById(R.id.item_count);
         toolbar.setOnMenuItemClickListener(item -> {
             Log.d("ProductsFragment", "onOptionsItemSelected");
@@ -80,7 +86,9 @@ public class ProductsFragment extends Fragment implements OnItemClickListener {
                 Toast.makeText(getContext(), "New user clicked", Toast.LENGTH_SHORT).show();
                 return true;
             } else if (item.getItemId() == R.id.categories) {
-                Toast.makeText(getContext(), "Categories clicked", Toast.LENGTH_SHORT).show();
+                // Show the popup fragment
+                DiscountPopupFragment popupFragment = new DiscountPopupFragment();
+                popupFragment.show(getParentFragmentManager(), "DiscountPopupFragment");
                 return true;
             } else if (item.getItemId() == R.id.settings) {
                 Toast.makeText(getContext(), "Settings clicked", Toast.LENGTH_SHORT).show();
@@ -89,6 +97,7 @@ public class ProductsFragment extends Fragment implements OnItemClickListener {
                 return false;
             }
         });
+
 
         binding.chargeButton.setOnClickListener(v -> {
             ((MainActivity) requireActivity()).loadFragment(new CheckoutFragment());
@@ -165,5 +174,11 @@ public class ProductsFragment extends Fragment implements OnItemClickListener {
     @Override
     public void onItemLongClick(int productId) {
         cartViewModel.onRemoveFromCart(productId);
+    }
+
+    @Override
+    public void onProductInfoClick(Product product) {
+        ProductInfoFragment productInfoFragment = ProductInfoFragment.newInstance(product);
+        productInfoFragment.show(getParentFragmentManager(), "ProductInfoFragment");
     }
 }

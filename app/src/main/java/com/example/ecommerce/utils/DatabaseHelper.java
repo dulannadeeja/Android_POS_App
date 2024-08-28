@@ -18,6 +18,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public static final String COLUMN_PRODUCT_NAME = "name";
     public static final String COLUMN_PRODUCT_DESCRIPTION = "description";
     public static final String COLUMN_PRODUCT_PRICE = "price";
+    public static final String COLUMN_PRODUCT_COST = "cost";
     public static final String COLUMN_PRODUCT_IMAGE = "image";
     public static final String COLUMN_PRODUCT_DISCOUNT = "discount";
     public static final String COLUMN_PRODUCT_QUANTITY = "quantity";
@@ -66,6 +67,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                     + "%s TEXT, "
                     + "%s TEXT, "
                     + "%s REAL, "
+                    + "%s REAL, "
                     + "%s TEXT, "
                     + "%s REAL, "
                     + "%s INTEGER, "
@@ -76,6 +78,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             COLUMN_PRODUCT_NAME,
             COLUMN_PRODUCT_DESCRIPTION,
             COLUMN_PRODUCT_PRICE,
+            COLUMN_PRODUCT_COST,
             COLUMN_PRODUCT_IMAGE,
             COLUMN_PRODUCT_DISCOUNT,
             COLUMN_PRODUCT_QUANTITY,
