@@ -112,7 +112,7 @@ public class CartFragment extends Fragment implements OnItemClickListener {
         });
 
         // Initialize the cart view model
-        cartViewModel = new ViewModelProvider(this, App.appModule.provideCartViewModelFactory()).get(CartViewModel.class);
+        cartViewModel = new ViewModelProvider(requireActivity(), App.appModule.provideCartViewModelFactory()).get(CartViewModel.class);
 
         // Initialize the discount view model
         discountViewModel = new ViewModelProvider(requireActivity(), App.appModule.provideDiscountViewModelFactory()).get(DiscountViewModel.class);
@@ -167,6 +167,11 @@ public class CartFragment extends Fragment implements OnItemClickListener {
 
     @Override
     public void onProductInfoClick(Product product) {
+        // Do nothing
+    }
+
+    @Override
+    public void onAddCustomerClick() {
         // Do nothing
     }
 }

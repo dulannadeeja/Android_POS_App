@@ -25,7 +25,7 @@
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:text="SAVE"
-            android:id="@+id/add_product_button"
+            android:id="@+id/save_order_button"
             android:layout_weight="1"
             android:layout_marginEnd="8dp"
             android:background="@drawable/button_secondary"

@@ -4,13 +4,76 @@ public class Order {
     private final int _orderId;
     private final String orderDate;
     private final double orderTotal;
+    private final int discountId;
+    private final double discountAmount;
+    private final double taxAndCharges;
+    private final double subTotal;
+    private final double paidAmount;
+    private final double dueAmount;
+    private final int customerId;
     private final String orderStatus;
 
-    public Order(int orderId, String orderDate, double orderTotal, String orderStatus) {
-        this._orderId = orderId;
-        this.orderDate = orderDate;
-        this.orderTotal = orderTotal;
-        this.orderStatus = orderStatus;
+    private Order(OrderBuilder builder) {
+        this._orderId = builder._orderId;
+        this.orderDate = builder.orderDate;
+        this.orderTotal = builder.orderTotal;
+        this.discountId = builder.discountId;
+        this.discountAmount = builder.discountAmount;
+        this.taxAndCharges = builder.taxAndCharges;
+        this.subTotal = builder.subTotal;
+        this.paidAmount = builder.paidAmount;
+        this.dueAmount = builder.dueAmount;
+        this.customerId = builder.customerId;
+        this.orderStatus = builder.orderStatus;
+    }
+
+    public static class OrderBuilder {
+        private int _orderId;
+        private final String orderDate;
+        private final double orderTotal;
+        private int discountId;
+        private double discountAmount;
+        private double taxAndCharges;
+        private double subTotal;
+        private double paidAmount;
+        private double dueAmount;
+        private int customerId;
+        private String orderStatus;
+
+        public OrderBuilder(String orderDate, double orderTotal, String orderStatus, double taxAndCharges, double subTotal) {
+            this.orderDate = orderDate;
+            this.orderTotal = orderTotal;
+            this.orderStatus = orderStatus;
+            this.taxAndCharges = taxAndCharges;
+            this.subTotal = subTotal;
+        }
+
+        public OrderBuilder withOrderId(int orderId) {
+            this._orderId = orderId;
+            return this;
+        }
+
+        public OrderBuilder withDiscount(int discountId, double discountAmount) {
+            this.discountId = discountId;
+            this.discountAmount = discountAmount;
+            return this;
+        }
+
+        public OrderBuilder withPayment(double paidAmount, double dueAmount) {
+            this.paidAmount = paidAmount;
+            this.dueAmount = dueAmount;
+            return this;
+        }
+
+        public OrderBuilder withCustomerId(int customerId) {
+            this.customerId = customerId;
+            return this;
+        }
+
+        public Order build() {
+            return new Order(this);
+        }
+
     }
 
     public int get_orderId() {
@@ -25,8 +88,35 @@ public class Order {
         return orderTotal;
     }
 
+    public int getDiscountId() {
+        return discountId;
+    }
+
+    public double getDiscountAmount() {
+        return discountAmount;
+    }
+
+    public double getTaxAndCharges() {
+        return taxAndCharges;
+    }
+
+    public double getSubTotal() {
+        return subTotal;
+    }
+
+    public double getPaidAmount() {
+        return paidAmount;
+    }
+
+    public double getDueAmount() {
+        return dueAmount;
+    }
+
+    public int getCustomerId() {
+        return customerId;
+    }
+
     public String getOrderStatus() {
         return orderStatus;
     }
-
 }

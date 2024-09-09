@@ -136,8 +136,10 @@ public class DiscountPopupFragment extends DialogFragment {
                 Toast.makeText(getContext(), "Please select a discount type and value", Toast.LENGTH_SHORT).show();
                 return;
             }
-            Discount discount = new Discount(discountType, discountValue, new Date(), true);
-            discount.setEndDate(new Date());
+            Discount discount = new Discount.DiscountBuilder()
+                    .withDiscountType(discountType)
+                    .withDiscountValue(discountValue)
+                    .build();
             discountViewModel.onAddDiscount(discount);
             Toast.makeText(getContext(), "Discount added", Toast.LENGTH_SHORT).show();
         });

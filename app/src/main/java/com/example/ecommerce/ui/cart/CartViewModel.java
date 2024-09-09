@@ -1,27 +1,37 @@
 package com.example.ecommerce.ui.cart;
 
+import android.content.SharedPreferences;
 import android.util.Log;
 
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
+import com.example.ecommerce.App;
 import com.example.ecommerce.model.Cart;
 import com.example.ecommerce.model.Discount;
+import com.example.ecommerce.model.Order;
+import com.example.ecommerce.model.OrderItem;
 import com.example.ecommerce.repository.IApplyDiscountCallback;
 import com.example.ecommerce.repository.ICartRepository;
 import com.example.ecommerce.repository.IDiscountRepository;
+import com.example.ecommerce.repository.IOrderRepository;
+
+import java.util.ArrayList;
 
 public class CartViewModel extends ViewModel {
     private final ICartRepository repository;
     private final IDiscountRepository discountRepository;
+    private final IOrderRepository orderRepository;
     private static final String TAG = "cartViewModel";
     private static final MutableLiveData<Boolean> isLoading = new MutableLiveData<>(false);
     private static final MutableLiveData<String> errorMessage = new MutableLiveData<>("");
     private static final MutableLiveData<Cart> cart = new MutableLiveData<>();
+    private final Boolean isOpenOrder = false;
 
-    public CartViewModel(ICartRepository repository, IDiscountRepository discountRepository) {
+    public CartViewModel(ICartRepository repository, IDiscountRepository discountRepository, IOrderRepository orderRepository) {
         this.repository = repository;
         this.discountRepository = discountRepository;
+        this.orderRepository = orderRepository;
         setCart();
         setDiscount();
     }
@@ -115,6 +125,44 @@ public class CartViewModel extends ViewModel {
             errorMessage.setValue("Error clearing cart");
         } finally {
             isLoading.setValue(false);
+        }
+    }
+
+    public void onSavePendingOrder(OnSavedPendingOrderCallback callback){
+        try{
+            int customerId = 0;
+            if(App.appModule.provideCustomerSharedPreferences().contains("activeCustomerId")){
+                customerId = Integer.parseInt(App.appModule.provideCustomerSharedPreferences().getString("activeCustomerId", ""));
+                long orderId = orderRepository.handleNewOrder(cart.getValue().getCartItems(),cart.getValue().getCartTotalPrice(), cart.getValue().getCartTotalTax(), cart.getValue().getCartSubTotalPrice(), cart.getValue().getDiscountId(), cart.getValue().getDiscountValue(), customerId);
+                callback.onSuccessfulOrderSaved();
+            }else{
+                callback.onFailedOrderSaved("Please add a customer to save order");
+            }
+        }catch (Exception e){
+            Log.e(TAG, "Order save failed! ", e);
+            callback.onFailedOrderSaved("Error occurred while saving order");
+        }
+    }
+
+    public void onLoadOpenOrderToCart(Order order){
+        try{
+            isLoading.setValue(true);
+            repository.clearCart();
+            ArrayList<OrderItem> orderItems = orderRepository.getOrderItems(order.get_orderId());
+            orderItems.forEach(orderItem -> {
+                int itemQty = orderItem.getQuantity();
+                for(int i = 0; i < itemQty; i++){
+                    try {
+                        repository.addProductToCart(orderItem.getProductId());
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+            });
+            cart.setValue(repository.getCart());
+        }catch (Exception e) {
+            Log.e(TAG, "Error loading open order to cart", e);
+            errorMessage.setValue("Error loading open order to cart");
         }
     }
 

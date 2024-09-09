@@ -4,8 +4,16 @@
     <color name="primaryDarkColor">#3700B3</color>     <!-- Deep Purple 700 -->
     <color name="accentColor">#03DAC5</color>          <!-- Teal 200 -->
     <color name="backgroundColor">#FFFFFF</color>      <!-- White -->
+    <color name="backgroundLightColor">#F5F5F5</color> <!-- Light Gray -->
+    <color name="dividerColorLight">#E0E0E0</color>    <!-- Light Gray -->
+    <color name="dividerColorDark">#BDBDBD</color>     <!-- Gray -->
     <color name="textColorPrimary">#212121</color>     <!-- Dark Gray -->
     <color name="textColorSecondary">#757575</color>   <!-- Light Gray -->
     <color name="navigationBarColor">#6200EA</color>   <!-- Deep Purple 500 -->
-    <color name="actionBarColor">#6200EA</color>       <!-- Deep Purple 500 -->
+    <color name="actionBarColor">#6200EA</color>
+    <color name="light_blue_600">#FF039BE5</color>
+    <color name="light_blue_900">#FF01579B</color>
+    <color name="light_blue_A200">#FF40C4FF</color>
+    <color name="light_blue_A400">#FF00B0FF</color>
+    <color name="black_overlay">#66000000</color>       <!-- Deep Purple 500 -->
 </resources>

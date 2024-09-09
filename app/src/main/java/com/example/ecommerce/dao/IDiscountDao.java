@@ -6,11 +6,7 @@ import java.util.ArrayList;
 import java.util.Date;
 
 public interface IDiscountDao {
-    void createDiscount(String discountType, double discountValue, Date startDate) throws Exception;
-
-    void inactivateDiscounts() throws Exception;
-
+    int createDiscount(Discount discount) throws Exception;
     Discount getDiscount(int discountId) throws Exception;
-
-    ArrayList<Discount> getActiveDiscounts() throws Exception;
+    Discount isExistingDiscount(String discountType, double discountValue) throws Exception;
 }

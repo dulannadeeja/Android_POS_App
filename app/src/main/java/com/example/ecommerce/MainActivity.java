@@ -1,14 +1,10 @@
 package com.example.ecommerce;
 
 import android.os.Bundle;
-import android.util.Log;
 import android.view.MenuItem;
-import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.GravityCompat;
@@ -18,14 +14,13 @@ import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
-import androidx.lifecycle.ViewModelProvider;
 
-import com.example.ecommerce.ui.cart.CartFragment;
-import com.example.ecommerce.ui.cart.CartViewModel;
 import com.example.ecommerce.ui.create_product.CreateProductFragment;
 import com.example.ecommerce.ui.products.ProductsFragment;
-import com.google.android.material.appbar.MaterialToolbar;
+import com.example.ecommerce.utils.DatabaseHelper;
 import com.google.android.material.navigation.NavigationView;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
 
@@ -51,6 +46,16 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         if (savedInstanceState == null) {
             loadFragment(new ProductsFragment());
         }
+
+        // update the database
+        DatabaseHelper database = App.appModule.provideDatabaseHelper();
+//        database.onUpgrade(database.getWritableDatabase(), 1, 1);
+
+
+        FirebaseDatabase Fdatabase = FirebaseDatabase.getInstance();
+        DatabaseReference myRef = Fdatabase.getReference("message");
+
+        myRef.setValue("Hello, World!");
     }
 
     public void setActiveDrawerItem(Fragment fragment) {

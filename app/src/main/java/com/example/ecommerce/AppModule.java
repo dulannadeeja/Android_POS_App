@@ -1,58 +1,112 @@
 package com.example.ecommerce;
 
-import android.content.Context;
+import static android.content.Context.MODE_PRIVATE;
 
-import androidx.lifecycle.ViewModelProvider;
-import androidx.lifecycle.ViewModelStoreOwner;
+import android.content.Context;
+import android.content.SharedPreferences;
 
 import com.example.ecommerce.dao.CartDao;
+import com.example.ecommerce.dao.CustomerDao;
 import com.example.ecommerce.dao.DiscountDao;
 import com.example.ecommerce.dao.ICartDao;
+import com.example.ecommerce.dao.ICustomerDao;
 import com.example.ecommerce.dao.IDiscountDao;
+import com.example.ecommerce.dao.IOrderDao;
+import com.example.ecommerce.dao.IPaymentDao;
 import com.example.ecommerce.dao.IProductDao;
+import com.example.ecommerce.dao.OrderDao;
+import com.example.ecommerce.dao.PaymentDao;
 import com.example.ecommerce.dao.ProductDao;
 import com.example.ecommerce.repository.CartRepository;
+import com.example.ecommerce.repository.CustomerRepository;
 import com.example.ecommerce.repository.DiscountRepository;
 import com.example.ecommerce.repository.ICartRepository;
+import com.example.ecommerce.repository.ICustomerRepository;
 import com.example.ecommerce.repository.IDiscountRepository;
+import com.example.ecommerce.repository.IOrderRepository;
+import com.example.ecommerce.repository.IPaymentRepository;
 import com.example.ecommerce.repository.IProductRepository;
+import com.example.ecommerce.repository.OrderRepository;
+import com.example.ecommerce.repository.PaymentRepository;
 import com.example.ecommerce.repository.ProductRepository;
 import com.example.ecommerce.ui.cart.CartViewModelFactory;
+import com.example.ecommerce.ui.checkout.CheckoutViewModelFactory;
+import com.example.ecommerce.ui.customers.create_customer.CreateCustomerViewModelFactory;
 import com.example.ecommerce.ui.discount.DiscountViewModelFactory;
-import com.example.ecommerce.ui.products.ProductsViewModel;
 import com.example.ecommerce.ui.products.ProductsViewModelFactory;
 import com.example.ecommerce.utils.DatabaseHelper;
 
-interface IAppModule{
-    DatabaseHelper provideDatabaseHelper();
-    IProductDao provideProductDao();
-    IProductRepository provideProductRepository();
-    ProductsViewModelFactory provideProductsViewModelFactory();
-    ICartDao provideCartDao();
-    ICartRepository provideCartRepository();
-    CartViewModelFactory provideCartViewModelFactory();
-    IDiscountDao provideDiscountDao();
-    IDiscountRepository provideDiscountRepository();
-    DiscountViewModelFactory provideDiscountViewModelFactory();
-    ViewModelProvider provideViewModelProvider(ViewModelStoreOwner owner);
+interface IAppModule {
     Context provideAppContext();
+
+    DatabaseHelper provideDatabaseHelper();
+
+    IProductDao provideProductDao();
+
+    IProductRepository provideProductRepository();
+
+    ProductsViewModelFactory provideProductsViewModelFactory();
+
+    ICartDao provideCartDao();
+
+    ICartRepository provideCartRepository();
+
+    CartViewModelFactory provideCartViewModelFactory();
+
+    IDiscountDao provideDiscountDao();
+
+    IDiscountRepository provideDiscountRepository();
+
+    DiscountViewModelFactory provideDiscountViewModelFactory();
+
+    IPaymentDao providePaymentDao();
+
+    IPaymentRepository providePaymentRepository();
+
+    IOrderDao provideOrderDao();
+
+    IOrderRepository provideOrderRepository();
+
+    CheckoutViewModelFactory provideCheckoutViewModelFactory();
+
+    ICustomerDao provideCustomerDao();
+
+    ICustomerRepository provideCustomerRepository();
+
+    CreateCustomerViewModelFactory provideCreateCustomerViewModelFactory();
+
+    SharedPreferences provideCustomerSharedPreferences();
+
+    SharedPreferences provideDiscountSharedPreferences();
 }
 
-public class AppModule implements IAppModule{
-    private Context appContext;
-    private DatabaseHelper databaseHelper;
-    private IProductDao productDao;
-    private IProductRepository productRepository;
-    private ProductsViewModelFactory productsViewModelFactory;
-    private ICartDao cartDao;
-    private ICartRepository cartRepository;
-    private CartViewModelFactory cartViewModelFactory;
-    private IDiscountDao discountDao;
-    private IDiscountRepository discountRepository;
-    private DiscountViewModelFactory discountViewModelFactory;
+public class AppModule implements IAppModule {
+    private final Context appContext;
+    private final DatabaseHelper databaseHelper;
+    private final IProductDao productDao;
+    private final IProductRepository productRepository;
+    private final ProductsViewModelFactory productsViewModelFactory;
+    private final ICartDao cartDao;
+    private final ICartRepository cartRepository;
+    private final CartViewModelFactory cartViewModelFactory;
+    private final IDiscountDao discountDao;
+    private final IDiscountRepository discountRepository;
+    private final DiscountViewModelFactory discountViewModelFactory;
+    private final IPaymentDao paymentDao;
+    private final IPaymentRepository paymentRepository;
+    private final IOrderDao orderDao;
+    private final IOrderRepository orderRepository;
+    private final CheckoutViewModelFactory checkoutViewModelFactory;
+    private final ICustomerDao customerDao;
+    private final ICustomerRepository customerRepository;
+    private final CreateCustomerViewModelFactory createCustomerViewModelFactory;
+    private final SharedPreferences customerSharedPreferences;
+    private final SharedPreferences discountSharedPreferences;
 
-    public AppModule(Context appContext){
+    public AppModule(Context appContext) {
         this.appContext = appContext;
+        customerSharedPreferences = appContext.getSharedPreferences("CustomerSharedPreferences", MODE_PRIVATE);
+        discountSharedPreferences = appContext.getSharedPreferences("DiscountSharedPreferences", MODE_PRIVATE);
         databaseHelper = new DatabaseHelper(appContext);
         productDao = new ProductDao(databaseHelper);
         productRepository = new ProductRepository(productDao);
@@ -62,66 +116,119 @@ public class AppModule implements IAppModule{
         discountViewModelFactory = new DiscountViewModelFactory(discountRepository);
         cartDao = new CartDao(databaseHelper);
         cartRepository = new CartRepository(cartDao);
-        cartViewModelFactory = new CartViewModelFactory(cartRepository, discountRepository);
+        paymentDao = new PaymentDao(databaseHelper);
+        orderDao = new OrderDao(databaseHelper);
+        paymentRepository = new PaymentRepository(paymentDao);
+        orderRepository = new OrderRepository(orderDao);
+        customerDao = new CustomerDao(databaseHelper);
+        customerRepository = new CustomerRepository(customerDao, customerSharedPreferences, orderDao);
+        createCustomerViewModelFactory = new CreateCustomerViewModelFactory(customerRepository);
+        cartViewModelFactory = new CartViewModelFactory(cartRepository, discountRepository,orderRepository);
+        checkoutViewModelFactory = new CheckoutViewModelFactory(cartRepository, paymentRepository, orderRepository);
     }
 
     @Override
-    public DatabaseHelper provideDatabaseHelper(){
+    public DatabaseHelper provideDatabaseHelper() {
         return databaseHelper;
     }
 
     @Override
-    public IProductDao provideProductDao(){
+    public IProductDao provideProductDao() {
         return productDao;
     }
 
     @Override
-    public IProductRepository provideProductRepository(){
+    public IProductRepository provideProductRepository() {
         return productRepository;
     }
 
     @Override
-    public ProductsViewModelFactory provideProductsViewModelFactory(){
+    public ProductsViewModelFactory provideProductsViewModelFactory() {
         return productsViewModelFactory;
     }
 
     @Override
-    public ICartDao provideCartDao(){
+    public ICartDao provideCartDao() {
         return cartDao;
     }
 
     @Override
-    public ICartRepository provideCartRepository(){
+    public ICartRepository provideCartRepository() {
         return cartRepository;
     }
 
     @Override
-    public CartViewModelFactory provideCartViewModelFactory(){
+    public CartViewModelFactory provideCartViewModelFactory() {
         return cartViewModelFactory;
     }
 
     @Override
-    public IDiscountDao provideDiscountDao(){
+    public IDiscountDao provideDiscountDao() {
         return discountDao;
     }
 
     @Override
-    public IDiscountRepository provideDiscountRepository(){
+    public IDiscountRepository provideDiscountRepository() {
         return discountRepository;
     }
 
     @Override
-    public DiscountViewModelFactory provideDiscountViewModelFactory(){
+    public DiscountViewModelFactory provideDiscountViewModelFactory() {
         return discountViewModelFactory;
     }
 
     @Override
-    public ViewModelProvider provideViewModelProvider(ViewModelStoreOwner owner){
-        return new ViewModelProvider(owner);
+    public IPaymentDao providePaymentDao() {
+        return this.paymentDao;
     }
 
     @Override
-    public Context provideAppContext(){
+    public IPaymentRepository providePaymentRepository() {
+        return this.paymentRepository;
+    }
+
+    @Override
+    public IOrderDao provideOrderDao() {
+        return this.orderDao;
+    }
+
+    @Override
+    public IOrderRepository provideOrderRepository() {
+        return this.orderRepository;
+    }
+
+    @Override
+    public CheckoutViewModelFactory provideCheckoutViewModelFactory() {
+        return this.checkoutViewModelFactory;
+    }
+
+    @Override
+    public ICustomerDao provideCustomerDao() {
+        return this.customerDao;
+    }
+
+    @Override
+    public ICustomerRepository provideCustomerRepository() {
+        return this.customerRepository;
+    }
+
+    @Override
+    public CreateCustomerViewModelFactory provideCreateCustomerViewModelFactory() {
+        return this.createCustomerViewModelFactory;
+    }
+
+    @Override
+    public SharedPreferences provideCustomerSharedPreferences() {
+        return customerSharedPreferences;
+    }
+
+    @Override
+    public SharedPreferences provideDiscountSharedPreferences() {
+        return discountSharedPreferences;
+    }
+
+    @Override
+    public Context provideAppContext() {
         return appContext;
     }
 

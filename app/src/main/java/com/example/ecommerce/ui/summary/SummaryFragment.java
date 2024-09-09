@@ -63,6 +63,5 @@ public class SummaryFragment extends Fragment {
         binding.newOrderButton.setOnClickListener(v -> {
             ((MainActivity) requireActivity()).loadFragment(new ProductsFragment());
         });
-
     }
 }

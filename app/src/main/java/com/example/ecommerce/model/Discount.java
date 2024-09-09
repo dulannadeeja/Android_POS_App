@@ -1,28 +1,39 @@
 package com.example.ecommerce.model;
 
-import java.util.Date;
-
 public class Discount {
     private int discountId;
     private final String discountType;
     private final double discountValue;
-    private final Date startDate;
-    private Date endDate;
-    private final Boolean isActive;
 
-    public Discount(String discountType, double discountValue, Date startDate,  Boolean isActive) {
-        this.discountType = discountType;
-        this.discountValue = discountValue;
-        this.startDate = startDate;
-        this.isActive = isActive;
+    private Discount(DiscountBuilder builder) {
+        this.discountId = builder.discountId;
+        this.discountType = builder.discountType;
+        this.discountValue = builder.discountValue;
     }
 
-    public void setDiscountId(int discountId) {
-        this.discountId = discountId;
-    }
+    public static class DiscountBuilder {
+        private int discountId;
+        private String discountType;
+        private double discountValue;
 
-    public void setEndDate(Date endDate) {
-        this.endDate = endDate;
+        public DiscountBuilder withDiscountId(int discountId) {
+            this.discountId = discountId;
+            return this;
+        }
+
+        public DiscountBuilder withDiscountType(String discountType) {
+            this.discountType = discountType;
+            return this;
+        }
+
+        public DiscountBuilder withDiscountValue(double discountValue) {
+            this.discountValue = discountValue;
+            return this;
+        }
+
+        public Discount build() {
+            return new Discount(this);
+        }
     }
 
     public int getDiscountId() {
@@ -35,17 +46,5 @@ public class Discount {
 
     public double getDiscountValue() {
         return discountValue;
-    }
-
-    public Date getStartDate() {
-        return startDate;
-    }
-
-    public Date getEndDate() {
-        return endDate;
-    }
-
-    public Boolean getActive() {
-        return isActive;
     }
 }

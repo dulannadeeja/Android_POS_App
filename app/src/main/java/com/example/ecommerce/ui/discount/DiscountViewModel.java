@@ -49,7 +49,8 @@ public class DiscountViewModel extends ViewModel {
     public void onAddDiscount(Discount discount) {
         try {
             isLoading.setValue(true);
-            discountRepository.addNewDiscount(discount);
+            discountRepository.newDiscountHandler(discount);
+            discountRepository.saveCurrentDiscount(discount);
             setDiscount();
             errorMessage.setValue("");
         } catch (Exception e) {
@@ -63,7 +64,7 @@ public class DiscountViewModel extends ViewModel {
     public void onClearDiscount() {
         try {
             isLoading.setValue(true);
-            discountRepository.clearDiscount();
+            discountRepository.clearCurrentDiscount();
             setDiscount();
             errorMessage.setValue("");
         } catch (Exception e) {

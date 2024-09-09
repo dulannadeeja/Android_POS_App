@@ -51,8 +51,8 @@
         <item name="android:popupBackground">@color/backgroundColor</item>
         <item name="android:dropDownWidth">match_parent</item>
         <item name="android:dropDownHeight">wrap_content</item>
-<!--        <item name="android:dropDownAnchor">@id/autocomplete</item>-->
-<!--        <item name="android:dropDownItemStyle">@style/MyDropDownItemStyle</item>-->
+        <!--        <item name="android:dropDownAnchor">@id/autocomplete</item>-->
+        <!--        <item name="android:dropDownItemStyle">@style/MyDropDownItemStyle</item>-->
         <item name="android:inputType">text</item>
     </style>
 

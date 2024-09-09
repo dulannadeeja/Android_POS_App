@@ -8,6 +8,8 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -21,6 +23,7 @@ import com.example.ecommerce.dao.CartDao;
 import com.example.ecommerce.dao.DiscountDao;
 import com.example.ecommerce.dao.ICartDao;
 import com.example.ecommerce.dao.IDiscountDao;
+import com.example.ecommerce.dao.IOrderDao;
 import com.example.ecommerce.databinding.FragmentCheckoutBinding;
 import com.example.ecommerce.repository.CartRepository;
 import com.example.ecommerce.repository.DiscountRepository;
@@ -36,12 +39,7 @@ import com.google.android.material.appbar.MaterialToolbar;
 
 public class CheckoutFragment extends Fragment {
 
-    private DatabaseHelper databaseHelper;
-    private ICartDao cartDao;
-    private ICartRepository cartRepository;
-    private IDiscountDao discountDao;
-    private IDiscountRepository discountRepository;
-    private CartViewModel cartViewModel;
+    private CheckoutViewModel checkoutViewModel;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -91,28 +89,76 @@ public class CheckoutFragment extends Fragment {
             }
         });
 
-        // Initialize the database helper and DAO objects for the cart
-        databaseHelper = App.appModule.provideDatabaseHelper();
-        cartDao = new CartDao(databaseHelper);
-        cartRepository = new CartRepository(cartDao);
+        // Initialize the checkout view model
+        checkoutViewModel = new ViewModelProvider(this, App.appModule.provideCheckoutViewModelFactory()).get(CheckoutViewModel.class);
 
-        discountDao = new DiscountDao(databaseHelper);
-        discountRepository = new DiscountRepository(discountDao);
-
-        // Initialize the cart view model
-        cartViewModel = new ViewModelProvider(this, new CartViewModelFactory(cartRepository,discountRepository)).get(CartViewModel.class);
-
-        // Fetch cart
-        cartViewModel.getCart().observe(getViewLifecycleOwner(), cart -> {
-            binding.tvTotalAmount.setText(String.valueOf(cart.getCartTotalPrice()));
+        // Observe the cart data
+        checkoutViewModel.getCart().observe(getViewLifecycleOwner(), cart -> {
+            binding.tvTotalAmount.setText(String.valueOf(cart.getCartSubTotalPrice()));
+            binding.etAmountDue.setText(String.valueOf(cart.getCartSubTotalPrice()));
         });
 
-        binding.etAmountDue.setText(binding.tvTotalAmount.getText());
+        // Observe the payment method
+        checkoutViewModel.getPaymentMethod().observe(getViewLifecycleOwner(), paymentMethod -> {
+            if(paymentMethod.equals("CARD")) {
+                binding.selectCardButton.setBackgroundColor(getResources().getColor(R.color.accentColor));
+                binding.selectCashButton.setBackgroundColor(getResources().getColor(R.color.backgroundColor));
+                binding.selectCreditButton.setBackgroundColor(getResources().getColor(R.color.backgroundColor));
+            }else if(paymentMethod.equals("CASH")) {
+                binding.selectCardButton.setBackgroundColor(getResources().getColor(R.color.backgroundColor));
+                binding.selectCashButton.setBackgroundColor(getResources().getColor(R.color.accentColor));
+                binding.selectCreditButton.setBackgroundColor(getResources().getColor(R.color.backgroundColor));
+            }else if(paymentMethod.equals("CREDIT")) {
+                binding.selectCardButton.setBackgroundColor(getResources().getColor(R.color.backgroundColor));
+                binding.selectCashButton.setBackgroundColor(getResources().getColor(R.color.backgroundColor));
+                binding.selectCreditButton.setBackgroundColor(getResources().getColor(R.color.accentColor));
+            }
+        });
+
+        binding.selectCardButton.setOnClickListener(v -> {
+            checkoutViewModel.onPaymentMethodChanged("CARD");
+        });
+
+        binding.selectCashButton.setOnClickListener(v -> {
+            checkoutViewModel.onPaymentMethodChanged("CASH");
+        });
+
+        binding.selectCreditButton.setOnClickListener(v -> {
+            checkoutViewModel.onPaymentMethodChanged("CREDIT");
+        });
 
         binding.chargeButton.setOnClickListener(v -> {
-            Toast.makeText(getContext(), "Payment successful", Toast.LENGTH_SHORT).show();
-            // load summary fragment
-            ((MainActivity) requireActivity()).loadFragment(new SummaryFragment());
+            checkoutViewModel.onOrderConfirmed(new OnOrderPlacedCallback() {
+                @Override
+                public void onSuccessfulOrderPlaced() {
+                    ((MainActivity) getActivity()).loadFragment(new SummaryFragment());
+                    Toast.makeText(getContext(), "Order placed successfully", Toast.LENGTH_SHORT).show();
+                }
+
+                @Override
+                public void onFailedOrderPlaced() {
+                    Toast.makeText(getContext(), "Order placement failed", Toast.LENGTH_SHORT).show();
+                }
+            });
+        });
+
+        // listen for the due amount changes
+        binding.etAmountDue.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+            }
+            @Override
+            public void afterTextChanged(Editable s) {
+                try {
+                    double amountDue = Double.parseDouble(s.toString());
+                    checkoutViewModel.setPayingAmount(amountDue);
+                } catch (NumberFormatException e) {
+                    Log.e("CheckoutFragment", "Invalid amount due", e);
+                }
+            }
         });
     }
 }

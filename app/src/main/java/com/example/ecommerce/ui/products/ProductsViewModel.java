@@ -7,7 +7,6 @@ import com.example.ecommerce.model.Product;
 import com.example.ecommerce.repository.IProductRepository;
 
 import java.util.ArrayList;
-import java.util.List;
 
 public class ProductsViewModel extends ViewModel {
     private final IProductRepository repository;

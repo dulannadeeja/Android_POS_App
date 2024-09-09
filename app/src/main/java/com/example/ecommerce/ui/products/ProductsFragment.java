@@ -17,29 +17,17 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.ecommerce.App;
-import com.example.ecommerce.ProductInfoFragment;
-import com.example.ecommerce.dao.CartDao;
-import com.example.ecommerce.dao.DiscountDao;
-import com.example.ecommerce.dao.ICartDao;
-import com.example.ecommerce.dao.IDiscountDao;
-import com.example.ecommerce.dao.IProductDao;
-import com.example.ecommerce.dao.ProductDao;
+import com.example.ecommerce.ui.cart.OnSavedPendingOrderCallback;
 import com.example.ecommerce.model.Product;
-import com.example.ecommerce.repository.CartRepository;
-import com.example.ecommerce.repository.DiscountRepository;
-import com.example.ecommerce.repository.ICartRepository;
-import com.example.ecommerce.repository.IDiscountRepository;
-import com.example.ecommerce.repository.IProductRepository;
-import com.example.ecommerce.repository.ProductRepository;
 import com.example.ecommerce.ui.cart.CartFragment;
 import com.example.ecommerce.ui.cart.CartViewModel;
-import com.example.ecommerce.ui.cart.CartViewModelFactory;
 import com.example.ecommerce.ui.checkout.CheckoutFragment;
 import com.example.ecommerce.MainActivity;
 import com.example.ecommerce.R;
 import com.example.ecommerce.databinding.FragmentProductsBinding;
+import com.example.ecommerce.ui.customers.CustomersFragment;
 import com.example.ecommerce.ui.discount.DiscountPopupFragment;
-import com.example.ecommerce.utils.DatabaseHelper;
+import com.example.ecommerce.ui.open_orders.OpenOrdersFragment;
 import com.example.ecommerce.utils.ProductsAdapter;
 import com.google.android.material.appbar.MaterialToolbar;
 
@@ -50,17 +38,15 @@ public class ProductsFragment extends Fragment implements OnItemClickListener {
     private static final String TAG = "ProductsFragment";
     private ProductsViewModel productsViewModel;
     private CartViewModel cartViewModel;
-
+    private static MaterialToolbar toolbar;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
-        Log.d("ProductsFragment", "onCreate");
         super.onCreate(savedInstanceState);
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        Log.d("ProductsFragment", "onCreateView");
         return inflater.inflate(R.layout.fragment_products, container, false);
     }
 
@@ -70,7 +56,7 @@ public class ProductsFragment extends Fragment implements OnItemClickListener {
 
         FragmentProductsBinding binding = FragmentProductsBinding.bind(view);
 
-        MaterialToolbar toolbar = view.findViewById(R.id.main_toolbar);
+        toolbar = view.findViewById(R.id.main_toolbar);
         toolbar.inflateMenu(R.menu.menu_main_appbar);
         toolbar.findViewById(R.id.go_to_cart).setOnClickListener(v -> {
             ((MainActivity) requireActivity()).loadFragment(new CartFragment());
@@ -83,7 +69,7 @@ public class ProductsFragment extends Fragment implements OnItemClickListener {
         toolbar.setOnMenuItemClickListener(item -> {
             Log.d("ProductsFragment", "onOptionsItemSelected");
             if (item.getItemId() == R.id.new_user) {
-                Toast.makeText(getContext(), "New user clicked", Toast.LENGTH_SHORT).show();
+                onAddCustomerClick();
                 return true;
             } else if (item.getItemId() == R.id.categories) {
                 // Show the popup fragment
@@ -156,14 +142,30 @@ public class ProductsFragment extends Fragment implements OnItemClickListener {
                 // disable the charge button
                 binding.chargeButton.setEnabled(false);
                 binding.chargeButton.setText("CHARGE");
-
+                binding.saveOrderButton.setText("OPEN ORDERS");
+                binding.saveOrderButton.setOnClickListener(v->{
+                    OpenOrdersFragment openOrdersFragment = new OpenOrdersFragment();
+                    openOrdersFragment.show(getParentFragmentManager(), "OpenOrdersFragment");
+                });
             } else {
                 binding.chargeButton.setEnabled(true);
                 binding.chargeButton.setText("CHARGE " + cart.getCartTotalPrice());
+                binding.saveOrderButton.setText("SAVE");
+                binding.saveOrderButton.setOnClickListener(v -> {
+                    cartViewModel.onSavePendingOrder(new OnSavedPendingOrderCallback() {
+                        @Override
+                        public void onSuccessfulOrderSaved() {
+                            Toast.makeText(getContext(), "Order saved successfully", Toast.LENGTH_SHORT).show();
+                        }
 
+                        @Override
+                        public void onFailedOrderSaved(String message) {
+                            Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                });
             }
         });
-
     }
 
     @Override
@@ -181,4 +183,21 @@ public class ProductsFragment extends Fragment implements OnItemClickListener {
         ProductInfoFragment productInfoFragment = ProductInfoFragment.newInstance(product);
         productInfoFragment.show(getParentFragmentManager(), "ProductInfoFragment");
     }
+
+    @Override
+    public void onAddCustomerClick() {
+        CustomersFragment customersFragment = new CustomersFragment();
+        customersFragment.show(getParentFragmentManager(), "CustomersFragment");
+    }
+
+    public static void markAddCustomerIconAsActive(){
+        // Change the icon to a check mark
+        toolbar.getMenu().findItem(R.id.new_user).setIcon(R.drawable.baseline_person_add_24);
+    }
+
+    public static void markAddCustomerIconAsInactive(){
+        // Change the icon to a plus sign
+        toolbar.getMenu().findItem(R.id.new_user).setIcon(R.drawable.baseline_person_add_alt_24);
+    }
+
 }

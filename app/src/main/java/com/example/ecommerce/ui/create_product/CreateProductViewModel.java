@@ -12,6 +12,7 @@ import com.example.ecommerce.App;
 import com.example.ecommerce.MainActivity;
 import com.example.ecommerce.model.Product;
 import com.example.ecommerce.repository.IProductRepository;
+import com.example.ecommerce.utils.FileHelper;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -220,33 +221,12 @@ public class CreateProductViewModel extends ViewModel {
 
     public void saveImage(Uri imageUri) {
         try {
-            // Get the input stream from the selected image URI
-            InputStream inputStream = App.appModule.provideAppContext().getContentResolver().openInputStream(imageUri);
-
-            // Define the directory and file name where the image will be saved
-            File directory = new File(App.appModule.provideAppContext().getFilesDir(), "images");
-            if (!directory.exists()) {
-                directory.mkdirs(); // Create directory if it doesn't exist
-            }
-
-            File file = new File(directory, "product_image_" + System.currentTimeMillis() + ".jpg");
-
-            // Save the image using FileOutputStream
-            FileOutputStream outputStream = new FileOutputStream(file);
-            byte[] buffer = new byte[1024];
-            int bytesRead;
-            while ((bytesRead = inputStream.read(buffer)) != -1) {
-                outputStream.write(buffer, 0, bytesRead);
-            }
-
-            outputStream.close();
-            inputStream.close();
+            String filePath = FileHelper.saveImage(imageUri, "product_image", App.appModule.provideAppContext());
 
             // Update the product image field with the file path
-            applyUpdateToTheProduct("productImage", file.getAbsolutePath());
-            Log.d(TAG, "Image saved to: " + file.getAbsolutePath());
+            applyUpdateToTheProduct("productImage", filePath);
 
-        } catch (IOException e) {
+        } catch (Exception e) {
             Log.e(TAG, "Failed to save image", e);
         }
     }
@@ -254,14 +234,7 @@ public class CreateProductViewModel extends ViewModel {
     public void deleteImage() {
         try{
             String imagePath = product.getValue().getProductImage();
-            if(imagePath != null && !imagePath.isEmpty()){
-                File file = new File(imagePath);
-                if(file.exists()){
-                    file.delete();
-                    applyUpdateToTheProduct("productImage", null);
-                    Log.d(TAG, "Image deleted successfully");
-                }
-            }
+            FileHelper.deleteImage(imagePath, "product_image");
         } catch (Exception e){
             Log.e(TAG, "Failed to delete image", e);
         }
