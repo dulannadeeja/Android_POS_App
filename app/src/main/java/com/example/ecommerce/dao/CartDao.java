@@ -81,4 +81,27 @@ public class CartDao implements ICartDao {
         }
     }
 
+    @Override
+    @SuppressLint("Range")
+    public CartItem getCartItem(int productId){
+        try (SQLiteDatabase db = databaseHelper.getReadableDatabase()) {
+            Cursor cursor = db.rawQuery("SELECT * FROM " + DatabaseHelper.TABLE_CART_ITEMS + " WHERE " + DatabaseHelper.COLUMN_PRODUCT_ID + " = " + productId, null);
+            if (cursor.moveToFirst()) {
+                int _cartItemId = cursor.getInt(cursor.getColumnIndex(DatabaseHelper.COLUMN_CART_ITEM_ID));
+                int quantity = cursor.getInt(cursor.getColumnIndex(DatabaseHelper.COLUMN_QUANTITY));
+
+                Cursor productCursor = db.rawQuery("SELECT * FROM " + DatabaseHelper.TABLE_PRODUCTS + " WHERE " + DatabaseHelper.COLUMN_PRODUCT_ID + " = " + productId, null);
+                productCursor.moveToFirst();
+                double price = productCursor.getDouble(productCursor.getColumnIndex(DatabaseHelper.COLUMN_PRODUCT_PRICE));
+                double discount = productCursor.getDouble(productCursor.getColumnIndex(DatabaseHelper.COLUMN_PRODUCT_DISCOUNT));
+                String productName = productCursor.getString(productCursor.getColumnIndex(DatabaseHelper.COLUMN_PRODUCT_NAME));
+                productCursor.close();
+                return new CartItem(_cartItemId, productId, quantity, price, discount, productName);
+            }
+            return null;
+        } catch (Exception e) {
+            throw new RuntimeException("Error getting cart item", e);
+        }
+    }
+
 }

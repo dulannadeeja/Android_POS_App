@@ -84,16 +84,35 @@ public class CartViewModel extends ViewModel {
         }
     }
 
-    public void onAddToCart(int productId) {
+    public void onAddToCart(int productId,OnCartOperationCompleted callback) {
         try {
             isLoading.setValue(true);
             repository.addProductToCart(productId);
             setCart();
             setDiscount();
             errorMessage.setValue("");
+            callback.onSuccessfulCartOperation();
         } catch (Exception e) {
             Log.e("cartViewModel", "Error adding product to cart", e);
             errorMessage.setValue("Error adding product to cart");
+            callback.onFailedCartOperation("Looks like the product is out of stock");
+        } finally {
+            isLoading.setValue(false);
+        }
+    }
+
+    public void onDecreaseProductQuantity(int productId, OnCartOperationCompleted callback) {
+        try {
+            isLoading.setValue(true);
+            repository.decreaseProductQuantity(productId);
+            setCart();
+            setDiscount();
+            errorMessage.setValue("");
+            callback.onSuccessfulCartOperation();
+        } catch (Exception e) {
+            Log.e("cartViewModel", "Error decreasing product quantity", e);
+            errorMessage.setValue("Something went wrong, please try again");
+            callback.onFailedCartOperation("Something went wrong, please try again");
         } finally {
             isLoading.setValue(false);
         }

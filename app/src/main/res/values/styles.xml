@@ -3,4 +3,21 @@
         <item name="android:padding">0dp</item>
         <item name="android:layout_margin">0dp</item>
     </style>
+    <style name="RoundedImageView" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">50%</item> <!-- This makes it fully rounded -->
+    </style>
+    <style name="RoundedImageViewSmall" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">15%</item> <!-- This makes it half rounded -->
+    </style>
+    <!-- Button Shape with 15% corner radius -->
+    <style name="CustomOutlineButtonShape" parent="Widget.Material3.Button.OutlinedButton">
+        <item name="shapeAppearanceOverlay">@style/CustomCornerShape</item>
+    </style>
+    <!-- Shape with 15% corner radius -->
+    <style name="CustomCornerShape" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">15%</item> <!-- 15% corner radius -->
+    </style>
 </resources>

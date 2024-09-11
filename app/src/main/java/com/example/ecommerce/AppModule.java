@@ -120,7 +120,7 @@ public class AppModule implements IAppModule {
         discountDao = new DiscountDao(databaseHelper);
         discountRepository = new DiscountRepository(discountDao);
         cartDao = new CartDao(databaseHelper);
-        cartRepository = new CartRepository(cartDao);
+        cartRepository = new CartRepository(cartDao,productDao);
         paymentDao = new PaymentDao(databaseHelper);
         orderDao = new OrderDao(databaseHelper);
         paymentRepository = new PaymentRepository(paymentDao);

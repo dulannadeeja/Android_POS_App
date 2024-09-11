@@ -30,12 +30,6 @@
     <style name="ActionBarStyle" parent="android:Widget.Material.ActionBar">
         <!-- Custom background color for the Action Bar -->
         <item name="android:background">@color/actionBarColor</item>
-
-        <!-- Optional: Customize other aspects of the action bar -->
-        <!-- <item name="android:titleTextStyle">@style/ActionBarTitleTextStyle</item> -->
-        <!-- <item name="android:subtitleTextStyle">@style/ActionBarSubtitleTextStyle</item> -->
-        <!-- <item name="android:displayOptions">showHome|useLogo</item> -->
-
         <!-- Set a custom icon for the app in the Action Bar -->
         <item name="android:icon">@drawable/ic_launcher_foreground</item>
     </style>
@@ -51,14 +45,7 @@
         <item name="android:popupBackground">@color/backgroundColor</item>
         <item name="android:dropDownWidth">match_parent</item>
         <item name="android:dropDownHeight">wrap_content</item>
-        <!--        <item name="android:dropDownAnchor">@id/autocomplete</item>-->
-        <!--        <item name="android:dropDownItemStyle">@style/MyDropDownItemStyle</item>-->
         <item name="android:inputType">text</item>
-    </style>
-
-    <style name="RoundedImageView" parent="">
-        <item name="cornerFamily">rounded</item>
-        <item name="cornerSize">50%</item> <!-- This makes it fully rounded -->
     </style>
 
 </resources>

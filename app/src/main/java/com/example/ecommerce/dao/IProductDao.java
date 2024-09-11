@@ -11,4 +11,5 @@ public interface IProductDao {
     ArrayList<Product> getAllProducts();
     Product getProductById(int productId);
     ArrayList<Product> filterProducts(String keyword);
+    int getProductQuantity(int productId);
 }

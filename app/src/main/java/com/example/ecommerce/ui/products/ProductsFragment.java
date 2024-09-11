@@ -17,6 +17,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.ecommerce.App;
+import com.example.ecommerce.ui.cart.OnCartOperationCompleted;
 import com.example.ecommerce.ui.cart.OnSavedPendingOrderCallback;
 import com.example.ecommerce.model.Product;
 import com.example.ecommerce.ui.cart.CartFragment;
@@ -118,7 +119,17 @@ public class ProductsFragment extends Fragment implements OnItemClickListener {
 
     @Override
     public void onItemClick(int productId) {
-        cartViewModel.onAddToCart(productId);
+        cartViewModel.onAddToCart(productId, new OnCartOperationCompleted() {
+            @Override
+            public void onSuccessfulCartOperation() {
+                Toast.makeText(getContext(), "Item added to cart", Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onFailedCartOperation(String message) {
+                Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     @Override

@@ -11,4 +11,5 @@ public interface ICartDao {
     void deleteCartItem(int productId) throws Exception;
     void updateCartItem(int productId, int quantity) throws Exception;
     void clearCart() throws Exception;
+    CartItem getCartItem(int productId) throws Exception;
 }

@@ -68,7 +68,7 @@ public class CartFragment extends Fragment implements OnCartItemClickListener {
         tvGoToCart.setVisibility(View.GONE);
         toolbar.setTitle("Cart");
         toolbar.setTitleTextColor(getResources().getColor(R.color.backgroundColor));
-        toolbar.setNavigationIcon(R.drawable.baseline_arrow_back_24);
+        toolbar.setNavigationIcon(R.drawable.baseline_arrow_back_24_white);
         toolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -117,6 +117,36 @@ public class CartFragment extends Fragment implements OnCartItemClickListener {
     @Override
     public void onCartItemLongClick(int cartItemId) {
         cartViewModel.onRemoveFromCart(cartItemId);
+    }
+
+    @Override
+    public void onCartItemAddClick(int cartItemId) {
+        cartViewModel.onAddToCart(cartItemId, new OnCartOperationCompleted() {
+            @Override
+            public void onSuccessfulCartOperation() {
+                Toast.makeText(getContext(), "Item added to cart", Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onFailedCartOperation(String message) {
+                Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    @Override
+    public void onCartItemRemoveClick(int cartItemId) {
+        cartViewModel.onDecreaseProductQuantity(cartItemId, new OnCartOperationCompleted() {
+            @Override
+            public void onSuccessfulCartOperation() {
+                Toast.makeText(getContext(), "Item removed from cart", Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onFailedCartOperation(String message) {
+                Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     @Override

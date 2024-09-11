@@ -16,6 +16,7 @@ import com.example.ecommerce.model.CartItem;
 import com.example.ecommerce.model.Product;
 import com.example.ecommerce.ui.cart.OnCartItemClickListener;
 import com.example.ecommerce.ui.products.OnItemClickListener;
+import com.google.android.material.button.MaterialButton;
 
 import java.util.ArrayList;
 
@@ -43,9 +44,9 @@ public class CartItemsAdapter extends RecyclerView.Adapter<CartItemsAdapter.View
     public void onBindViewHolder(@NonNull CartItemsAdapter.ViewHolder holder, int position) {
         holder.tvCartItemTitle.setText(cartItems.get(position).getProductName());
         String totalPrice = String.valueOf(cartItems.get(position).getPrice() * cartItems.get(position).getQuantity());
-        holder.tvCartItemPrice.setText(totalPrice);
+        holder.tvCartItemPrice.setText(String.format("Rs. %s", totalPrice));
         String quantity = String.valueOf(cartItems.get(position).getQuantity());
-        holder.tvCartItemQuantity.setText(String.format("Qty: %s", quantity));
+        holder.tvCartItemQuantity.setText(quantity);
         holder.bind(cartItems.get(position), listener);
     }
 
@@ -58,6 +59,7 @@ public class CartItemsAdapter extends RecyclerView.Adapter<CartItemsAdapter.View
 
         private final TextView tvCartItemTitle, tvCartItemPrice, tvCartItemQuantity;
         private final ConstraintLayout clCartItem;
+        private final MaterialButton cartItemAddBtn, cartItemRemoveBtn;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -65,6 +67,8 @@ public class CartItemsAdapter extends RecyclerView.Adapter<CartItemsAdapter.View
             tvCartItemTitle = itemView.findViewById(R.id.cart_item_title);
             tvCartItemPrice = itemView.findViewById(R.id.cart_item_total);
             tvCartItemQuantity = itemView.findViewById(R.id.cart_item_quantity);
+            cartItemAddBtn = itemView.findViewById(R.id.cart_item_add_button);
+            cartItemRemoveBtn = itemView.findViewById(R.id.cart_item_remove_button);
         }
 
         public void bind (final CartItem item, final OnCartItemClickListener listener) {
@@ -80,6 +84,20 @@ public class CartItemsAdapter extends RecyclerView.Adapter<CartItemsAdapter.View
                 public boolean onLongClick(View v) {
                     listener.onCartItemLongClick(item.getProductId());
                     return true;
+                }
+            });
+
+            cartItemAddBtn.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    listener.onCartItemAddClick(item.getProductId());
+                }
+            });
+
+            cartItemRemoveBtn.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    listener.onCartItemRemoveClick(item.getProductId());
                 }
             });
         }

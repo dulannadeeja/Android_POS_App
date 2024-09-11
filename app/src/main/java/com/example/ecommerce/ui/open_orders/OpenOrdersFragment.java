@@ -23,6 +23,8 @@ import com.example.ecommerce.model.OpenOrderItem;
 import com.example.ecommerce.model.Order;
 import com.example.ecommerce.model.Product;
 import com.example.ecommerce.ui.cart.CartViewModel;
+import com.example.ecommerce.ui.customers.CustomerViewModel;
+import com.example.ecommerce.ui.discount.DiscountViewModel;
 import com.example.ecommerce.utils.OpenOrdersAdapter;
 import com.example.ecommerce.utils.ProductsAdapter;
 
