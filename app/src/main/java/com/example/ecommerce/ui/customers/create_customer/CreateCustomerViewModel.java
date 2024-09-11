@@ -1,5 +1,7 @@
 package com.example.ecommerce.ui.customers.create_customer;
 
+import android.util.Log;
+
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
@@ -8,8 +10,10 @@ import com.example.ecommerce.repository.ICustomerRepository;
 import com.example.ecommerce.ui.products.ProductsFragment;
 
 public class CreateCustomerViewModel extends ViewModel {
+    public static final String TAG = "CreateCustomerViewModel";
     private ICustomerRepository customerRepository;
-    private MutableLiveData<Customer> customer = new MutableLiveData<>(new Customer.CustomerBuilder().buildCustomer());
+
+    private MutableLiveData<Boolean> isEditingMode = new MutableLiveData<>(false);
     private MutableLiveData<String> firstNameError = new MutableLiveData<>();
     private MutableLiveData<String> lastNameError = new MutableLiveData<>();
     private MutableLiveData<String> emailError = new MutableLiveData<>();
@@ -23,15 +27,8 @@ public class CreateCustomerViewModel extends ViewModel {
         this.customerRepository = customerRepository;
     }
 
-    public void loadCurrentCustomer() {
-        Customer currentCustomer = customerRepository.getCurrentCustomerHandler();
-        currentCustomer = currentCustomer != null ? currentCustomer : new Customer.CustomerBuilder().buildCustomer();
-        customer.setValue(currentCustomer);
-    }
-
-    public Boolean validateFirstName() {
-        String firstName = customer.getValue().getFirstName() == null ? "" : customer.getValue().getFirstName();
-        if (firstName.isEmpty()) {
+    public Boolean validateFirstName(String firstName) {
+        if (firstName == null || firstName.isEmpty()) {
             firstNameError.setValue("Looks like you forgot to enter your first name!");
             return false;
         }
@@ -39,9 +36,8 @@ public class CreateCustomerViewModel extends ViewModel {
         return true;
     }
 
-    public Boolean validateLastName() {
-        String lastName = customer.getValue().getLastName() == null ? "" : customer.getValue().getLastName();
-        if (lastName.isEmpty()) {
+    public Boolean validateLastName(String lastName) {
+        if (lastName == null || lastName.isEmpty()) {
             lastNameError.setValue("Looks like you forgot to enter your last name!");
             return false;
         }
@@ -49,9 +45,8 @@ public class CreateCustomerViewModel extends ViewModel {
         return true;
     }
 
-    public Boolean validateEmail() {
-        String email = customer.getValue().getEmail() == null ? "" : customer.getValue().getEmail();
-        if (!email.isEmpty()) {
+    public Boolean validateEmail(String email) {
+        if (email != null && !email.isEmpty()) {
             if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
                 emailError.setValue("Please enter a valid email address!");
                 return false;
@@ -61,9 +56,8 @@ public class CreateCustomerViewModel extends ViewModel {
         return true;
     }
 
-    public Boolean validatePhone() {
-        String phone = customer.getValue().getPhone() == null ? "" : customer.getValue().getPhone();
-        if (!phone.isEmpty()) {
+    public Boolean validatePhone(String phone) {
+        if (phone != null && !phone.isEmpty()) {
             if (!android.util.Patterns.PHONE.matcher(phone).matches()) {
                 phoneError.setValue("Please enter a valid phone number!");
                 return false;
@@ -80,9 +74,8 @@ public class CreateCustomerViewModel extends ViewModel {
         return true;
     }
 
-    public Boolean validateAddress(){
-        String address = customer.getValue().getAddress() == null ? "" : customer.getValue().getAddress();
-        if (address.isEmpty()) {
+    public Boolean validateAddress(String address) {
+        if (address == null || address.isEmpty()) {
             addressError.setValue("Looks like you forgot to enter the address!");
             return false;
         }
@@ -90,9 +83,8 @@ public class CreateCustomerViewModel extends ViewModel {
         return true;
     }
 
-    public Boolean validateCity(){
-        String city = customer.getValue().getCity() == null ? "" : customer.getValue().getCity();
-        if (city.isEmpty()) {
+    public Boolean validateCity(String city) {
+        if (city == null || city.isEmpty()) {
             cityError.setValue("Looks like you forgot to enter the city!");
             return false;
         }
@@ -115,9 +107,8 @@ public class CreateCustomerViewModel extends ViewModel {
         return true;
     }
 
-    public Boolean validateRegion(){
-        String region = customer.getValue().getRegion() == null ? "" : customer.getValue().getRegion();
-        if (region.isEmpty()) {
+    public Boolean validateRegion(String region) {
+        if (region == null || region.isEmpty()) {
             regionError.setValue("Looks like you forgot to enter the region!");
             return false;
         }
@@ -140,9 +131,8 @@ public class CreateCustomerViewModel extends ViewModel {
         return true;
     }
 
-    public Boolean validateGender() {
-        String gender = customer.getValue().getGender() == null ? "" : customer.getValue().getGender();
-        if (gender.isEmpty()) {
+    public Boolean validateGender(String gender) {
+        if (gender != null && gender.isEmpty()) {
             genderError.setValue("Looks like you forgot to enter the gender!");
             return false;
         }
@@ -150,39 +140,58 @@ public class CreateCustomerViewModel extends ViewModel {
         return true;
     }
 
-    public Boolean validateCustomer() {
+    public Boolean validateCustomer(Customer customer) {
         Boolean isValid = false;
-        isValid = validateFirstName();
-        isValid = validateLastName() && isValid;
-        isValid = validateEmail() && isValid;
-        isValid = validatePhone() && isValid;
-        isValid = validateGender() && isValid;
-        Boolean isAddressNull = customer.getValue().getAddress() == null || customer.getValue().getAddress().isEmpty();
-        Boolean isCityNull = customer.getValue().getCity() == null || customer.getValue().getCity().isEmpty();
-        Boolean isRegionNull = customer.getValue().getRegion() == null || customer.getValue().getRegion().isEmpty();
+        isValid = validateFirstName(customer.getFirstName());
+        isValid = validateLastName(customer.getLastName()) && isValid;
+        isValid = validateEmail(customer.getEmail()) && isValid;
+        isValid = validatePhone(customer.getPhone()) && isValid;
+        isValid = validateGender(customer.getGender()) && isValid;
+        Boolean isAddressNull = customer.getAddress() == null || customer.getAddress().isEmpty();
+        Boolean isCityNull = customer.getCity() == null || customer.getCity().isEmpty();
+        Boolean isRegionNull = customer.getRegion() == null || customer.getRegion().isEmpty();
         if(!isAddressNull || !isCityNull || !isRegionNull){
-            isValid = validateAddress() && isValid;
-            isValid = validateCity() && isValid;
-            isValid = validateRegion() && isValid;
+            isValid = validateAddress(customer.getAddress()) && isValid;
+            isValid = validateCity(customer.getCity()) && isValid;
+            isValid = validateRegion(customer.getRegion()) && isValid;
         }
         return isValid;
     }
 
-    public void onConfirmCustomerSave(OnConfirmCustomerCallback onConfirmCustomerCallback) {
+    public void onConfirmCustomerSave(Customer customer,OnConfirmCustomerCallback onConfirmCustomerCallback) {
         try {
-            if (validateCustomer()) {
-                int customerId = customerRepository.newCustomerHandler(customer.getValue());
+            if (validateCustomer(customer)) {
+                int customerId = customerRepository.newCustomerHandler(customer);
                 customerRepository.setCurrentCustomerHandler(customerId);
-                onConfirmCustomerCallback.onSuccessfulCustomerCreation();
-                ProductsFragment.markAddCustomerIconAsActive();
+                onConfirmCustomerCallback.onSuccessful();
             }
         } catch (Exception e) {
-            onConfirmCustomerCallback.onFailedCustomerCreation();
+            Log.e(TAG, "error while saving customer, ", e);
+            onConfirmCustomerCallback.onFailed();
         }
     }
 
-    public MutableLiveData<Customer> getCustomer() {
-        return customer;
+    public void onConfirmCustomerUpdate(Customer customer,OnConfirmCustomerCallback onConfirmCustomerCallback) {
+        try {
+            if (validateCustomer(customer)) {
+                customerRepository.updateCustomerHandler(customer);
+                onConfirmCustomerCallback.onSuccessful();
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "error while updating customer, ", e);
+            onConfirmCustomerCallback.onFailed();
+        }
+    }
+
+    public void onClearCustomerErrors() {
+        firstNameError.setValue(null);
+        lastNameError.setValue(null);
+        emailError.setValue(null);
+        phoneError.setValue(null);
+        addressError.setValue(null);
+        cityError.setValue(null);
+        regionError.setValue(null);
+        genderError.setValue(null);
     }
 
     public MutableLiveData<String> getFirstNameError() {
@@ -217,64 +226,12 @@ public class CreateCustomerViewModel extends ViewModel {
         return regionError;
     }
 
-    public void clearGender() {
-        customer.getValue().setGender(null);
+    public MutableLiveData<Boolean> getIsEditingMode() {
+        return isEditingMode;
     }
 
-    public <T> void applyUpdateToCustomer(String field, T value) {
-        Customer customerClone = customer.getValue();
-        switch (field) {
-            case "firstName":
-                customerClone.setFirstName((String) value);
-                validateFirstName();
-                break;
-            case "lastName":
-                customerClone.setLastName((String) value);
-                validateLastName();
-                break;
-            case "email":
-                customerClone.setEmail((String) value);
-                validateEmail();
-                break;
-            case "phone":
-                customerClone.setPhone((String) value);
-                validatePhone();
-                break;
-            case "address":
-                customerClone.setAddress((String) value);
-                break;
-            case "city":
-                customerClone.setCity((String) value);
-                break;
-            case "region":
-                customerClone.setRegion((String) value);
-                break;
-            case "gender":
-                customerClone.setGender((String) value);
-                validateGender();
-                break;
-            case "photo":
-                customerClone.setPhoto((String) value);
-                break;
-            default:
-                throw new IllegalArgumentException("Invalid field name" + field);
-
-        }
-
-        customer.setValue(customerClone);
-    }
-
-    public void clearCustomer() {
-        customer.setValue(new Customer.CustomerBuilder().buildCustomer());
-        firstNameError.setValue(null);
-        lastNameError.setValue(null);
-        emailError.setValue(null);
-        phoneError.setValue(null);
-        addressError.setValue(null);
-        cityError.setValue(null);
-        regionError.setValue(null);
-        genderError.setValue(null);
-        customerRepository.clearCurrentCustomerHandler();
+    public void setIsEditingMode(Boolean isEditingMode) {
+        this.isEditingMode.setValue(isEditingMode);
     }
 
 }

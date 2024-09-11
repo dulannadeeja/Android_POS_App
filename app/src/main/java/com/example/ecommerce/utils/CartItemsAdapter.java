@@ -22,11 +22,11 @@ import java.util.ArrayList;
 
 public class CartItemsAdapter extends RecyclerView.Adapter<CartItemsAdapter.ViewHolder> {
 
-    private final OnItemClickListener listener;
+    private final OnCartItemClickListener listener;
     private final Context context;
     private ArrayList<CartItem> cartItems = new ArrayList<CartItem>();
 
-    public CartItemsAdapter(OnItemClickListener listener, Context context, ArrayList<CartItem> cartItems) {
+    public CartItemsAdapter(OnCartItemClickListener listener, Context context, ArrayList<CartItem> cartItems) {
         this.listener = listener;
         this.context = context;
         this.cartItems = cartItems;
@@ -67,18 +67,18 @@ public class CartItemsAdapter extends RecyclerView.Adapter<CartItemsAdapter.View
             tvCartItemQuantity = itemView.findViewById(R.id.cart_item_quantity);
         }
 
-        public void bind (final CartItem item, final OnItemClickListener listener) {
+        public void bind (final CartItem item, final OnCartItemClickListener listener) {
             clCartItem.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    listener.onItemClick(item.getProductId());
+                    listener.onCartItemClick(item.getProductId());
                 }
             });
 
             clCartItem.setOnLongClickListener(new View.OnLongClickListener(){
                 @Override
                 public boolean onLongClick(View v) {
-                    listener.onItemLongClick(item.getProductId());
+                    listener.onCartItemLongClick(item.getProductId());
                     return true;
                 }
             });

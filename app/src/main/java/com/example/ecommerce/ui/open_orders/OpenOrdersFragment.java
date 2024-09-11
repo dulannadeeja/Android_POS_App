@@ -30,6 +30,7 @@ import java.util.ArrayList;
 
 public class OpenOrdersFragment extends DialogFragment implements OnOpenOrderClickListener {
 
+    public static final String TAG = "OpenOrdersFragment";
     private FragmentOpenOrdersBinding binding;
     private CartViewModel cartViewModel;
 

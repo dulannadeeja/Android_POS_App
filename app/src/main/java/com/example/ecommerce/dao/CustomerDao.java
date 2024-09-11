@@ -90,4 +90,25 @@ public class CustomerDao implements ICustomerDao {
             throw new RuntimeException("Error getting all customers", e);
         }
     }
+
+    @Override
+    public void updateCustomer(Customer customer) {
+        try(SQLiteDatabase db = databaseHelper.getWritableDatabase()) {
+            ContentValues values = new ContentValues();
+            values.put(DatabaseHelper.COLUMN_CUSTOMER_FIRST_NAME, customer.getFirstName());
+            values.put(DatabaseHelper.COLUMN_CUSTOMER_LAST_NAME, customer.getLastName());
+            values.put(DatabaseHelper.COLUMN_CUSTOMER_EMAIL, customer.getEmail());
+            values.put(DatabaseHelper.COLUMN_CUSTOMER_PHONE, customer.getPhone());
+            values.put(DatabaseHelper.COLUMN_CUSTOMER_ADDRESS, customer.getAddress());
+            values.put(DatabaseHelper.COLUMN_CUSTOMER_CITY, customer.getCity());
+            values.put(DatabaseHelper.COLUMN_CUSTOMER_REGION, customer.getRegion());
+            values.put(DatabaseHelper.COLUMN_CUSTOMER_GENDER, customer.getGender());
+            values.put(DatabaseHelper.COLUMN_CUSTOMER_PHOTO, customer.getPhoto());
+            String selection = DatabaseHelper.COLUMN_CUSTOMER_ID + " = ?";
+            String[] selectionArgs = {String.valueOf(customer.getCustomerId())};
+            db.update(DatabaseHelper.TABLE_CUSTOMERS, values, selection, selectionArgs);
+        } catch (SQLiteException e) {
+            throw new RuntimeException("Error updating customer", e);
+        }
+    }
 }

@@ -307,6 +307,7 @@
 
                     <com.google.android.material.button.MaterialButton
                         style="@style/Widget.Material3.Button.TextButton"
+                        android:paddingVertical="10dp"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="MORE INFO"
@@ -327,8 +328,12 @@
                         android:src="@drawable/manage_accounts_24px" />
 
                     <com.google.android.material.button.MaterialButton
+                        android:id="@+id/edit_profile_button"
+                        android:paddingVertical="10dp"
+                        android:textAlignment="textStart"
                         style="@style/Widget.Material3.Button.TextButton"
-                        android:layout_width="wrap_content"
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
                         android:layout_height="wrap_content"
                         android:text="EDIT PROFILE"
                         android:textColor="@color/primaryColor"
@@ -349,6 +354,7 @@
 
                     <com.google.android.material.button.MaterialButton
                         style="@style/Widget.Material3.Button.TextButton"
+                        android:paddingVertical="10dp"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="REDEEM POINTS"
@@ -370,6 +376,7 @@
 
                     <com.google.android.material.button.MaterialButton
                         style="@style/Widget.Material3.Button.TextButton"
+                        android:paddingVertical="10dp"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="PURCHASE HISTORY"

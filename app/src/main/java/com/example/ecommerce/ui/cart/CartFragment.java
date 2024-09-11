@@ -30,7 +30,7 @@ import com.google.android.material.appbar.MaterialToolbar;
 
 import java.util.ArrayList;
 
-public class CartFragment extends Fragment implements OnItemClickListener {
+public class CartFragment extends Fragment implements OnCartItemClickListener {
 
     private static final String TAG = "CartFragment";
     private CartViewModel cartViewModel;
@@ -63,24 +63,11 @@ public class CartFragment extends Fragment implements OnItemClickListener {
 
         FragmentCartBinding binding = FragmentCartBinding.bind(view);
 
-        MaterialToolbar toolbar = view.findViewById(R.id.main_toolbar);
-        toolbar.inflateMenu(R.menu.menu_main_appbar);
-        toolbar.findViewById(R.id.go_to_cart).setOnClickListener(v -> {
-            ((MainActivity) requireActivity()).loadFragment(new CheckoutFragment());
-        });
-        TextView tvItemCount = toolbar.findViewById(R.id.item_count);
+        MaterialToolbar toolbar = getActivity().findViewById(R.id.main_toolbar);
         TextView tvGoToCart = toolbar.findViewById(R.id.go_to_cart);
         tvGoToCart.setVisibility(View.GONE);
         toolbar.setTitle("Cart");
         toolbar.setTitleTextColor(getResources().getColor(R.color.backgroundColor));
-        toolbar.setOnMenuItemClickListener(item -> {
-            if (item.getItemId() == R.id.share) {
-                Toast.makeText(getContext(), "Share clicked", Toast.LENGTH_SHORT).show();
-                return true;
-            } else {
-                return false;
-            }
-        });
         toolbar.setNavigationIcon(R.drawable.baseline_arrow_back_24);
         toolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
@@ -88,27 +75,6 @@ public class CartFragment extends Fragment implements OnItemClickListener {
                 // Navigate somewhere.
                 ((MainActivity) getActivity()).loadFragment(new ProductsFragment());
             }
-        });
-        toolbar.setOnMenuItemClickListener(item -> {
-            Log.d("ProductsFragment", "onOptionsItemSelected");
-            if (item.getItemId() == R.id.new_user) {
-                Toast.makeText(getContext(), "New user clicked", Toast.LENGTH_SHORT).show();
-                return true;
-            } else if (item.getItemId() == R.id.categories) {
-                // Show the popup fragment
-                    DiscountPopupFragment popupFragment = new DiscountPopupFragment();
-                    popupFragment.show(getParentFragmentManager(), "DiscountPopupFragment");
-                return true;
-            } else if (item.getItemId() == R.id.settings) {
-                Toast.makeText(getContext(), "Settings clicked", Toast.LENGTH_SHORT).show();
-                return true;
-            } else {
-                return false;
-            }
-        });
-
-        binding.chargeButton.setOnClickListener(v -> {
-            ((MainActivity) requireActivity()).loadFragment(new CheckoutFragment());
         });
 
         // Initialize the cart view model
@@ -126,7 +92,6 @@ public class CartFragment extends Fragment implements OnItemClickListener {
         cartViewModel.getCart().observe(getViewLifecycleOwner(), cart -> {
             Log.d(TAG, "cart has been changed: " + cart);
             cartItemsAdapter.setCartItems(cart.getCartItems());
-            tvItemCount.setText(String.valueOf(cart.getTotalItems()));
             binding.tvTaxAmount.setText(String.valueOf(cart.getCartTotalTax()));
             binding.tvTotalAmount.setText(String.valueOf(cart.getCartTotalPrice()));
             binding.tvSubTotalAmount.setText(String.valueOf(cart.getCartSubTotalPrice()));
@@ -135,16 +100,6 @@ public class CartFragment extends Fragment implements OnItemClickListener {
                 binding.discountContainer.setVisibility(View.VISIBLE);
             } else {
                 binding.discountContainer.setVisibility(View.GONE);
-            }
-            if(cart.getCartItems().isEmpty()) {
-                // disable the charge button
-                binding.chargeButton.setEnabled(false);
-                binding.chargeButton.setText("CHARGE");
-
-            } else {
-                binding.chargeButton.setEnabled(true);
-                binding.chargeButton.setText("CHARGE " + cart.getCartTotalPrice());
-
             }
         });
 
@@ -155,23 +110,30 @@ public class CartFragment extends Fragment implements OnItemClickListener {
     }
 
     @Override
-    public void onItemClick(int cartItemId) {
-        Toast.makeText(getContext(), "Cart item clicked" + cartItemId, Toast.LENGTH_SHORT).show();
+    public void onCartItemClick(int cartItemId) {
+        // TODO: Implement this method
     }
 
     @Override
-    public void onItemLongClick(int cartItemId) {
+    public void onCartItemLongClick(int cartItemId) {
         cartViewModel.onRemoveFromCart(cartItemId);
-        Toast.makeText(getContext(), "Cart item removed" + cartItemId, Toast.LENGTH_SHORT).show();
     }
 
     @Override
-    public void onProductInfoClick(Product product) {
-        // Do nothing
-    }
+    public void onDestroyView() {
+        super.onDestroyView();
 
-    @Override
-    public void onAddCustomerClick() {
-        // Do nothing
+        // Restore the toolbar state when leaving the fragment
+        MaterialToolbar toolbar = getActivity().findViewById(R.id.main_toolbar);
+        toolbar.setNavigationIcon(R.drawable.baseline_menu_24);
+        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                MainActivity.openDrawer();
+            }
+        });
+        toolbar.setTitle("");
+        TextView tvGoToCart = toolbar.findViewById(R.id.go_to_cart);
+        tvGoToCart.setVisibility(View.VISIBLE);
     }
 }

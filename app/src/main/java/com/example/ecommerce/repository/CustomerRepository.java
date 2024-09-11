@@ -33,6 +33,15 @@ public class CustomerRepository implements ICustomerRepository {
     }
 
     @Override
+    public void updateCustomerHandler(Customer customer) {
+        try {
+            customerDao.updateCustomer(customer);
+        } catch (Exception e) {
+            throw new RuntimeException("Error updating customer", e);
+        }
+    }
+
+    @Override
     public Customer getCustomerByIdHandler(int customerId) {
         try {
             return customerDao.getCustomerById(customerId);

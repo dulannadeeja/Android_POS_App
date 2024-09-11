@@ -17,14 +17,6 @@ public class CustomersViewModel extends ViewModel {
         customers.setValue(repository.getAllCustomersHandler());
     }
 
-    public void onUseCustomer(Customer customer) {
-        try{
-            repository.setCurrentCustomerHandler(customer.getCustomerId());
-        }catch (Exception e){
-            Toast.makeText(null, "Error setting current customer", Toast.LENGTH_SHORT).show();
-        }
-    }
-
     public MutableLiveData<ArrayList<Customer>> getCustomers() {
         return customers;
     }

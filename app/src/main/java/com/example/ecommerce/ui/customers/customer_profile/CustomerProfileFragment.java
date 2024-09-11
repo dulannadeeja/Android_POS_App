@@ -14,23 +14,28 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
+import android.widget.Toast;
 
 import com.example.ecommerce.App;
 import com.example.ecommerce.R;
 import com.example.ecommerce.databinding.FragmentCustomerProfileBinding;
 import com.example.ecommerce.model.Customer;
 import com.example.ecommerce.repository.ICustomerRepository;
+import com.example.ecommerce.ui.customers.CustomerViewModel;
+import com.example.ecommerce.ui.customers.CustomerViewModelFactory;
+import com.example.ecommerce.ui.customers.OnCurrentCustomerChangedCallback;
+import com.example.ecommerce.ui.customers.create_customer.CreateCustomerFragment;
 
 public class CustomerProfileFragment extends DialogFragment {
 
-    private CustomerProfileViewModel mViewModel;
+    public static final String TAG = "CustomerProfileFragment";
+    private CustomerProfileViewModel customerProfileViewModel;
+    private CustomerViewModel customerViewModel;
     private Customer customer;
-    private ICustomerRepository repository;
 
     public static CustomerProfileFragment newInstance(Customer customer) {
         CustomerProfileFragment fragment = new CustomerProfileFragment();
         fragment.customer = customer;
-        fragment.repository = App.appModule.provideCustomerRepository();
         return fragment;
     }
 
@@ -58,14 +63,15 @@ public class CustomerProfileFragment extends DialogFragment {
 
         FragmentCustomerProfileBinding binding = FragmentCustomerProfileBinding.bind(view);
 
-        mViewModel = new ViewModelProvider(this, new CustomerProfileViewModelFactory(App.appModule.provideCustomerRepository())).get(CustomerProfileViewModel.class);
+        customerProfileViewModel = new ViewModelProvider(this, new CustomerProfileViewModelFactory(App.appModule.provideCustomerRepository())).get(CustomerProfileViewModel.class);
+        customerViewModel = new ViewModelProvider(requireActivity(), App.appModule.provideCustomerViewModelFactory()).get(CustomerViewModel.class);
 
-        mViewModel.setCustomer(customer);
-        mViewModel.setIsCurrentCustomer(true);
-        mViewModel.setTotalOutstandingBalance();
+        customerProfileViewModel.setCustomer(customer);
+        customerProfileViewModel.setIsCurrentCustomer(true);
+        customerProfileViewModel.setTotalOutstandingBalance();
 
         // Observe view model data
-        mViewModel.getCustomer().observe(getViewLifecycleOwner(), customer -> {
+        customerProfileViewModel.getCustomer().observe(getViewLifecycleOwner(), customer -> {
             if (customer != null) {
                 binding.tvCustomerName.setText(String.format("%s %s", customer.getFirstName(), customer.getLastName()));
                 if (customer.getPhoto() != null) {
@@ -75,29 +81,36 @@ public class CustomerProfileFragment extends DialogFragment {
             }
         });
 
-        mViewModel.getIsCurrentCustomer().observe(getViewLifecycleOwner(), isCurrentCustomer -> {
+        customerProfileViewModel.getIsCurrentCustomer().observe(getViewLifecycleOwner(), isCurrentCustomer -> {
             if (isCurrentCustomer) {
                 binding.tvRemoveFromReceipt.setText("REMOVE FROM RECEIPT");
                 binding.tvRemoveFromReceipt.setOnClickListener(v -> {
-                    repository.clearCurrentCustomerHandler();
+                    customerViewModel.onClearCurrentCustomer();
                     dismiss();
                 });
             } else {
                 binding.tvRemoveFromReceipt.setText("ADD TO RECEIPT");
                 binding.tvRemoveFromReceipt.setOnClickListener(v -> {
-                            repository.setCurrentCustomerHandler(customer.getCustomerId());
+                            customerViewModel.onSetCurrentCustomer(customer.getCustomerId());
                             dismiss();
                         }
                 );
             }
         });
 
-        mViewModel.getTotalOutstandingBalance().observe(getViewLifecycleOwner(), totalOutstandingBalance -> {
+        customerProfileViewModel.getTotalOutstandingBalance().observe(getViewLifecycleOwner(), totalOutstandingBalance -> {
             binding.tvCustomerOutstanding.setText(String.valueOf(totalOutstandingBalance));
         });
 
 
         binding.ivBack.setOnClickListener(v -> dismiss());
+
+        binding.editProfileButton.setOnClickListener(v -> {
+            Toast.makeText(getContext(), "Edit Profile", Toast.LENGTH_SHORT).show();
+            CreateCustomerFragment createCustomerFragment = CreateCustomerFragment.newInstance(customer);
+            createCustomerFragment.show(getParentFragmentManager(), CreateCustomerFragment.TAG);
+            dismiss();
+        });
     }
 
 }

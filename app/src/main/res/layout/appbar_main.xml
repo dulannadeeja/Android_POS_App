@@ -21,44 +21,37 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="start"
+                android:gravity="center_vertical"
+                android:paddingStart="16dp"
                 android:text="View Items"
                 android:textColor="@android:color/white"
-                android:textSize="18sp"
-                android:paddingStart="16dp"
-                android:gravity="center_vertical" />
+                android:textSize="18sp" />
 
-            <androidx.constraintlayout.widget.ConstraintLayout
-                android:paddingStart="16dp"
+
+            <FrameLayout
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content">
+                android:layout_height="wrap_content"
+                android:padding="4dp"> <!-- Add padding to ensure the badge won't be cut off -->
 
+                <!-- Cart Icon -->
                 <ImageView
                     android:id="@+id/cart_icon"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
+                    android:layout_width="35dp"
+                    android:layout_height="35dp"
                     android:contentDescription="Cart"
-                    android:src="@drawable/outline_note_24"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintHorizontal_bias="0.5"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent"
-                    app:layout_constraintVertical_bias="0.5" />
+                    android:src="@drawable/document_empty" />
 
+                <!-- Badge (Item Count) -->
                 <TextView
                     android:id="@+id/item_count"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="2"
+                    android:layout_gravity="center_horizontal|center_vertical"
+                    android:padding="2dp"
+                    android:text="02"
                     android:textColor="@android:color/white"
-                    android:textSize="10sp"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintHorizontal_bias="0.5"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent"
-                    app:layout_constraintVertical_bias="0.5" />
-            </androidx.constraintlayout.widget.ConstraintLayout>
+                    android:textSize="12sp" />
+            </FrameLayout>
 
 
         </com.google.android.material.appbar.MaterialToolbar>

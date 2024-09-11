@@ -2,6 +2,7 @@ package com.example.ecommerce;
 
 import static android.content.Context.MODE_PRIVATE;
 
+import android.app.Application;
 import android.content.Context;
 import android.content.SharedPreferences;
 
@@ -31,6 +32,7 @@ import com.example.ecommerce.repository.PaymentRepository;
 import com.example.ecommerce.repository.ProductRepository;
 import com.example.ecommerce.ui.cart.CartViewModelFactory;
 import com.example.ecommerce.ui.checkout.CheckoutViewModelFactory;
+import com.example.ecommerce.ui.customers.CustomerViewModelFactory;
 import com.example.ecommerce.ui.customers.create_customer.CreateCustomerViewModelFactory;
 import com.example.ecommerce.ui.discount.DiscountViewModelFactory;
 import com.example.ecommerce.ui.products.ProductsViewModelFactory;
@@ -78,9 +80,12 @@ interface IAppModule {
     SharedPreferences provideCustomerSharedPreferences();
 
     SharedPreferences provideDiscountSharedPreferences();
+
+    CustomerViewModelFactory provideCustomerViewModelFactory();
 }
 
 public class AppModule implements IAppModule {
+    private final Application application;
     private final Context appContext;
     private final DatabaseHelper databaseHelper;
     private final IProductDao productDao;
@@ -102,18 +107,18 @@ public class AppModule implements IAppModule {
     private final CreateCustomerViewModelFactory createCustomerViewModelFactory;
     private final SharedPreferences customerSharedPreferences;
     private final SharedPreferences discountSharedPreferences;
+    private final CustomerViewModelFactory customerViewModelFactory;
 
     public AppModule(Context appContext) {
         this.appContext = appContext;
+        this.application = (Application) appContext.getApplicationContext();
         customerSharedPreferences = appContext.getSharedPreferences("CustomerSharedPreferences", MODE_PRIVATE);
         discountSharedPreferences = appContext.getSharedPreferences("DiscountSharedPreferences", MODE_PRIVATE);
         databaseHelper = new DatabaseHelper(appContext);
         productDao = new ProductDao(databaseHelper);
         productRepository = new ProductRepository(productDao);
-        productsViewModelFactory = new ProductsViewModelFactory(productRepository);
         discountDao = new DiscountDao(databaseHelper);
         discountRepository = new DiscountRepository(discountDao);
-        discountViewModelFactory = new DiscountViewModelFactory(discountRepository);
         cartDao = new CartDao(databaseHelper);
         cartRepository = new CartRepository(cartDao);
         paymentDao = new PaymentDao(databaseHelper);
@@ -121,10 +126,13 @@ public class AppModule implements IAppModule {
         paymentRepository = new PaymentRepository(paymentDao);
         orderRepository = new OrderRepository(orderDao);
         customerDao = new CustomerDao(databaseHelper);
+        discountViewModelFactory = new DiscountViewModelFactory(discountRepository);
         customerRepository = new CustomerRepository(customerDao, customerSharedPreferences, orderDao);
+        productsViewModelFactory = new ProductsViewModelFactory(productRepository, customerRepository);
         createCustomerViewModelFactory = new CreateCustomerViewModelFactory(customerRepository);
         cartViewModelFactory = new CartViewModelFactory(cartRepository, discountRepository,orderRepository);
         checkoutViewModelFactory = new CheckoutViewModelFactory(cartRepository, paymentRepository, orderRepository);
+        customerViewModelFactory = new CustomerViewModelFactory(application,customerRepository);
     }
 
     @Override
@@ -225,6 +233,11 @@ public class AppModule implements IAppModule {
     @Override
     public SharedPreferences provideDiscountSharedPreferences() {
         return discountSharedPreferences;
+    }
+
+    @Override
+    public CustomerViewModelFactory provideCustomerViewModelFactory() {
+        return customerViewModelFactory;
     }
 
     @Override

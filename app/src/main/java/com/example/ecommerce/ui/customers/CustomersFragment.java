@@ -28,11 +28,9 @@ import java.util.ArrayList;
 
 public class CustomersFragment extends DialogFragment implements OnCustomerClickListener{
 
+    public static final String TAG = "CustomersFragment";
     private CustomersViewModel customersViewModel;
-
-    public static CustomersFragment newInstance() {
-        return new CustomersFragment();
-    }
+    private CustomerViewModel customerViewModel;
 
     @Override
     public void onStart() {
@@ -71,6 +69,8 @@ public class CustomersFragment extends DialogFragment implements OnCustomerClick
         FragmentCustomersBinding binding = FragmentCustomersBinding.bind(view);
 
         customersViewModel = new ViewModelProvider(this,new CustomersViewModelFactory(App.appModule.provideCustomerRepository())).get(CustomersViewModel.class);
+        customerViewModel = new ViewModelProvider(requireActivity(), App.appModule.provideCustomerViewModelFactory()).get(CustomerViewModel.class);
+
 
         // Set up the RecyclerView
         binding.customersRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
@@ -92,12 +92,17 @@ public class CustomersFragment extends DialogFragment implements OnCustomerClick
     @Override
     public void onAddCustomerClicked(Customer customer) {
         Toast.makeText(getContext(), "Add Customer Clicked", Toast.LENGTH_SHORT).show();
-        customersViewModel.onUseCustomer(customer);
+        customerViewModel.onSetCurrentCustomer(customer.getCustomerId());
     }
 
     @Override
     public void onCustomerClick(Customer customer) {
         CustomerProfileFragment customerProfileFragment = CustomerProfileFragment.newInstance(customer);
         customerProfileFragment.show(getParentFragmentManager(), "CustomerProfileFragment");
+    }
+
+    @Override
+    public void dismiss() {
+        super.dismiss();
     }
 }

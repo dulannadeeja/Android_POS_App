@@ -75,33 +75,6 @@ public class CreateProductFragment extends Fragment {
 
         FragmentCreateProductBinding binding = FragmentCreateProductBinding.bind(view);
 
-        MaterialToolbar toolbar = view.findViewById(R.id.main_toolbar);
-        toolbar.inflateMenu(R.menu.menu_main_appbar);
-        toolbar.findViewById(R.id.go_to_cart).setOnClickListener(v -> {
-            ((MainActivity) requireActivity()).loadFragment(new CartFragment());
-        });
-        toolbar.setNavigationIcon(R.drawable.baseline_menu_24);
-        toolbar.setNavigationOnClickListener(v -> {
-            ((MainActivity) requireActivity()).openDrawer();
-        });
-        toolbar.setOnMenuItemClickListener(item -> {
-            Log.d("ProductsFragment", "onOptionsItemSelected");
-            if (item.getItemId() == R.id.new_user) {
-                Toast.makeText(getContext(), "New user clicked", Toast.LENGTH_SHORT).show();
-                return true;
-            } else if (item.getItemId() == R.id.categories) {
-                // Show the popup fragment
-                DiscountPopupFragment popupFragment = new DiscountPopupFragment();
-                popupFragment.show(getParentFragmentManager(), "DiscountPopupFragment");
-                return true;
-            } else if (item.getItemId() == R.id.settings) {
-                Toast.makeText(getContext(), "Settings clicked", Toast.LENGTH_SHORT).show();
-                return true;
-            } else {
-                return false;
-            }
-        });
-
         createProductViewModel = new ViewModelProvider(this, new CreateProductViewModelFactory(App.appModule.provideProductRepository(),product)).get(CreateProductViewModel.class);
 
         // handle product name change

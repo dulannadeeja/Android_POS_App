@@ -12,4 +12,5 @@ public interface ICustomerRepository {
     Customer getCurrentCustomerHandler();
     void clearCurrentCustomerHandler();
     double getCustomerOutstandingBalanceHandler(int customerId);
+    void updateCustomerHandler(Customer customer);
 }

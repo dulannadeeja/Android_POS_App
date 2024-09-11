@@ -8,4 +8,5 @@ public interface ICustomerDao {
     int createCustomer(Customer customer);
     Customer getCustomerById(int customerId);
     ArrayList<Customer> getAllCustomers();
+    void updateCustomer(Customer customer);
 }
