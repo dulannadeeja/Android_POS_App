@@ -46,6 +46,21 @@ public class DiscountViewModel extends ViewModel {
         }
     }
 
+    public void onSetCurrentDiscount(int discountId) {
+        try {
+            isLoading.setValue(true);
+            Discount discount = discountRepository.getDiscountById(discountId);
+            discountRepository.saveCurrentDiscount(discount);
+            setDiscount();
+            errorMessage.setValue("");
+        } catch (Exception e) {
+            errorMessage.setValue("Error setting discount");
+            Log.e("DiscountViewModel", "Error setting discount", e);
+        } finally {
+            isLoading.setValue(false);
+        }
+    }
+
     public void onAddDiscount(Discount discount) {
         try {
             isLoading.setValue(true);

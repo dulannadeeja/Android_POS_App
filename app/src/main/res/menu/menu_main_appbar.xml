@@ -23,4 +23,11 @@
         android:contentDescription="Settings"
         app:showAsAction="never" />
 
+    <item
+        android:id="@+id/clear_cart"
+        android:icon="@drawable/shopping_cart"
+        android:title="Clear Cart"
+        android:contentDescription="Clear Cart"
+        app:showAsAction="never" />
+
 </menu>

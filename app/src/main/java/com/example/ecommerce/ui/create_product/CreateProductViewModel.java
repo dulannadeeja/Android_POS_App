@@ -266,6 +266,17 @@ public class CreateProductViewModel extends ViewModel {
         }
     }
 
+    public void clearErrors() {
+        productNameError.postValue(null);
+        productDescriptionError.postValue(null);
+        productPriceError.postValue(null);
+        productCostError.postValue(null);
+        productDiscountError.postValue(null);
+        productQuantityError.postValue(null);
+        productBrandError.postValue(null);
+        productCategoryError.postValue(null);
+    }
+
     public MutableLiveData<String> getProductNameError() {
         return productNameError;
     }

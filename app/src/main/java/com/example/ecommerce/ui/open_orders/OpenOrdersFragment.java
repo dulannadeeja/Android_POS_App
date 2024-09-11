@@ -35,6 +35,8 @@ public class OpenOrdersFragment extends DialogFragment implements OnOpenOrderCli
     public static final String TAG = "OpenOrdersFragment";
     private FragmentOpenOrdersBinding binding;
     private CartViewModel cartViewModel;
+    private CustomerViewModel customerViewModel;
+    private DiscountViewModel discountViewModel;
 
     @Nullable
     @Override
@@ -67,8 +69,13 @@ public class OpenOrdersFragment extends DialogFragment implements OnOpenOrderCli
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+
         OpenOrdersViewModel openOrdersViewModel = new ViewModelProvider(this,new OpenOrdersViewModelFactory(App.appModule.provideOrderRepository())).get(OpenOrdersViewModel.class);
+
         cartViewModel = new ViewModelProvider(requireActivity(), App.appModule.provideCartViewModelFactory()).get(CartViewModel.class);
+        customerViewModel = new ViewModelProvider(requireActivity(), App.appModule.provideCustomerViewModelFactory()).get(CustomerViewModel.class);
+        discountViewModel = new ViewModelProvider(requireActivity(), App.appModule.provideDiscountViewModelFactory()).get(DiscountViewModel.class);
+
         binding.closeButton.setOnClickListener(v -> dismiss());
 
         // Initialize RecyclerView and Adapter
@@ -87,6 +94,8 @@ public class OpenOrdersFragment extends DialogFragment implements OnOpenOrderCli
     public void onEditOrderClick(Order order) {
         Toast.makeText(getContext(), "Edit Order Clicked", Toast.LENGTH_SHORT).show();
         cartViewModel.onLoadOpenOrderToCart(order);
+        customerViewModel.onSetCurrentCustomer(order.getCustomerId());
+        discountViewModel.onSetCurrentDiscount(order.getDiscountId());
         dismiss();
     }
 

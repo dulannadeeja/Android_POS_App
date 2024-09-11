@@ -1,4 +1,4 @@
 <shape xmlns:android="http://schemas.android.com/apk/res/android">
-    <solid android:color="@color/accentColor" />
-    <corners android:radius="50dp" /> <!-- Adjust the radius to make it fully round -->
+    <solid android:color="@color/material_dynamic_neutral0" />
+    <corners android:radius="500dp" /> <!-- Adjust the radius to make it fully round -->
 </shape>

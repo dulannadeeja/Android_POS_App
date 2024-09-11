@@ -17,6 +17,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.ecommerce.App;
+import com.example.ecommerce.model.CartItem;
 import com.example.ecommerce.ui.cart.OnCartOperationCompleted;
 import com.example.ecommerce.ui.cart.OnSavedPendingOrderCallback;
 import com.example.ecommerce.model.Product;
@@ -107,6 +108,17 @@ public class ProductsFragment extends Fragment implements OnItemClickListener {
                     }
                     adapter.setProducts(products);
                 });
+
+        cartViewModel.getCart().observe(getViewLifecycleOwner(), cart -> {
+            if (cart != null) {
+                ArrayList<CartItem> cartItems = cart.getCartItems();
+                cartItems.forEach(cartItem -> {
+                    adapter.setProductQuantity(cartItem.getProductId(), cartItem.getQuantity());
+                });
+            }else{
+                adapter.clearProductQuantity();
+            }
+        });
     }
 
     @Override

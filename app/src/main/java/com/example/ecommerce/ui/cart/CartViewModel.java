@@ -179,6 +179,7 @@ public class CartViewModel extends ViewModel {
                 }
             });
             cart.setValue(repository.getCart());
+            setDiscount();
         }catch (Exception e) {
             Log.e(TAG, "Error loading open order to cart", e);
             errorMessage.setValue("Error loading open order to cart");

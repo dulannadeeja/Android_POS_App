@@ -51,8 +51,11 @@ public class ProductInfoFragment extends DialogFragment {
         FragmentProductInfoBinding binding = FragmentProductInfoBinding.bind(view);
 
         // Set the product details
-        Uri productImage = Uri.parse(product.getProductImage());
-        binding.productImage.setImageURI(productImage);
+        if(product.getProductImage() != null) {
+            binding.productImage.setImageURI(Uri.parse(product.getProductImage()));
+        }else{
+            binding.productImage.setImageResource(R.drawable.product_image_placeholder);
+        }
         binding.tvProductName.setText(product.getProductName());
         binding.tvProductStock.setText(String.format("%s in stock", String.valueOf(product.getProductQuantity())));
         binding.tvProductCode.setText(String.valueOf(product.get_productId()));

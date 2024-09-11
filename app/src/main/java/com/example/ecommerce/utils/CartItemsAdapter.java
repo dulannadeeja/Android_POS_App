@@ -7,9 +7,11 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
+
 import androidx.annotation.NonNull;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.recyclerview.widget.RecyclerView;
+
 import com.bumptech.glide.Glide;
 import com.example.ecommerce.R;
 import com.example.ecommerce.model.CartItem;
@@ -43,7 +45,7 @@ public class CartItemsAdapter extends RecyclerView.Adapter<CartItemsAdapter.View
     @Override
     public void onBindViewHolder(@NonNull CartItemsAdapter.ViewHolder holder, int position) {
         holder.tvCartItemTitle.setText(cartItems.get(position).getProductName());
-        String totalPrice = String.valueOf(cartItems.get(position).getPrice() * cartItems.get(position).getQuantity());
+        String totalPrice = String.valueOf((cartItems.get(position).getPrice() - cartItems.get(position).getDiscount()) * cartItems.get(position).getQuantity());
         holder.tvCartItemPrice.setText(String.format("Rs. %s", totalPrice));
         String quantity = String.valueOf(cartItems.get(position).getQuantity());
         holder.tvCartItemQuantity.setText(quantity);
@@ -71,7 +73,7 @@ public class CartItemsAdapter extends RecyclerView.Adapter<CartItemsAdapter.View
             cartItemRemoveBtn = itemView.findViewById(R.id.cart_item_remove_button);
         }
 
-        public void bind (final CartItem item, final OnCartItemClickListener listener) {
+        public void bind(final CartItem item, final OnCartItemClickListener listener) {
             clCartItem.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -79,7 +81,7 @@ public class CartItemsAdapter extends RecyclerView.Adapter<CartItemsAdapter.View
                 }
             });
 
-            clCartItem.setOnLongClickListener(new View.OnLongClickListener(){
+            clCartItem.setOnLongClickListener(new View.OnLongClickListener() {
                 @Override
                 public boolean onLongClick(View v) {
                     listener.onCartItemLongClick(item.getProductId());

@@ -101,4 +101,13 @@ public class DiscountRepository implements IDiscountRepository {
         }
         return totalAmount;
     }
+
+    @Override
+    public Discount getDiscountById(int discountId) throws Exception {
+        try {
+            return discountDao.getDiscount(discountId);
+        } catch (Exception e) {
+            throw new RuntimeException("Error getting discount by id", e);
+        }
+    }
 }

@@ -92,6 +92,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 return true;
             } else if (item.getItemId() == R.id.settings) {
                 return true;
+            } else if (item.getItemId() == R.id.clear_cart) {
+                cartViewModel.onClearCart();
+                customerViewModel.onClearCurrentCustomer();
+                discountViewModel.onClearDiscount();
+                return true;
             } else {
                 return false;
             }

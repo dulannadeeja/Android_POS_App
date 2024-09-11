@@ -77,6 +77,8 @@ public class CreateProductFragment extends Fragment {
 
         createProductViewModel = new ViewModelProvider(this, new CreateProductViewModelFactory(App.appModule.provideProductRepository(),product)).get(CreateProductViewModel.class);
 
+        ((MainActivity) requireActivity()).findViewById(R.id.actions_container).setVisibility(View.GONE);
+
         // handle product name change
         binding.etProductName.addTextChangedListener(new TextWatcher() {
             @Override
@@ -316,6 +318,8 @@ public class CreateProductFragment extends Fragment {
                         binding.etProductDiscount.setText("");
                         binding.etProductStock.setText("");
                         binding.imagePreview.setImageResource(R.drawable.image_placeholder);
+                        binding.radioGroupCategory.clearCheck();
+                        createProductViewModel.clearErrors();
                     }
 
                     @Override
@@ -360,8 +364,12 @@ public class CreateProductFragment extends Fragment {
             binding.etProductCost.setText(String.valueOf(product.getProductCost()));
             binding.etProductDiscount.setText(String.valueOf(product.getProductDiscount()));
             binding.etProductStock.setText(String.valueOf(product.getProductQuantity()));
-            Uri productImage = Uri.parse(product.getProductImage());
-            binding.imagePreview.setImageURI(productImage);
+
+            if(product.getProductImage() != null) {
+                binding.imagePreview.setImageURI(Uri.parse(product.getProductImage()));
+            } else {
+                binding.imagePreview.setImageResource(R.drawable.image_placeholder);
+            }
 
             if(Objects.equals(product.getProductCategory(), "men")){
                 binding.radioCategoryMen.setChecked(true);
@@ -374,5 +382,11 @@ public class CreateProductFragment extends Fragment {
             }
 
         }
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        ((MainActivity) requireActivity()).findViewById(R.id.actions_container).setVisibility(View.VISIBLE);
     }
 }

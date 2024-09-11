@@ -16,6 +16,7 @@ import com.example.ecommerce.model.Product;
 import com.example.ecommerce.ui.products.OnItemClickListener;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 
 public class ProductsAdapter extends RecyclerView.Adapter<ProductsAdapter.ViewHolder> {
@@ -23,6 +24,7 @@ public class ProductsAdapter extends RecyclerView.Adapter<ProductsAdapter.ViewHo
     private final OnItemClickListener listener;
     private final Context context;
     private ArrayList<Product> products = new ArrayList<Product>();
+    private HashMap<Integer, Integer> productQuantity = new HashMap<>();
 
     public ProductsAdapter(OnItemClickListener listener, Context context, ArrayList<Product> products) {
         this.listener = listener;
@@ -39,15 +41,27 @@ public class ProductsAdapter extends RecyclerView.Adapter<ProductsAdapter.ViewHo
 
     @Override
     public void onBindViewHolder(@NonNull ProductsAdapter.ViewHolder holder, int position) {
-        Glide.with(context)
-                .load(products.get(position).getProductImage())
-                .circleCrop()  // This will make the image round
-                .into(holder.ivProductImage);
+        if(products.get(position).getProductImage() != null) {
+            Glide.with(context)
+                    .load(products.get(position).getProductImage())
+//                    .circleCrop()  // This will make the image round
+                    .into(holder.ivProductImage);
+        }else{
+            holder.ivProductImage.setImageResource(R.drawable.product_image_placeholder);
+        }
         holder.tvProductName.setText(products.get(position).getProductName());
         holder.tvProductPrice.setText(String.valueOf(products.get(position).getProductPrice()));
         String quantity = String.valueOf(products.get(position).getProductQuantity());
         holder.tvProductQuantity.setText(String.format("%s in stock", quantity));
         holder.bind(products.get(position), listener);
+
+        if (productQuantity.containsKey(products.get(position).get_productId())) {
+            holder.tvCartQuantity.setText(String.valueOf(productQuantity.get(products.get(position).get_productId())));
+            holder.tvCartQuantity.setVisibility(View.VISIBLE);
+        } else {
+            holder.tvCartQuantity.setText("0");
+            holder.tvCartQuantity.setVisibility(View.GONE);
+        }
     }
 
     @Override
@@ -58,7 +72,7 @@ public class ProductsAdapter extends RecyclerView.Adapter<ProductsAdapter.ViewHo
     public static class ViewHolder extends RecyclerView.ViewHolder {
 
         private final ImageView ivProductImage;
-        private final TextView tvProductName, tvProductPrice, tvProductQuantity;
+        private final TextView tvProductName, tvProductPrice, tvProductQuantity, tvCartQuantity;
         private final ConstraintLayout clProductItem;
         private final ImageView productInfo;
 
@@ -71,6 +85,7 @@ public class ProductsAdapter extends RecyclerView.Adapter<ProductsAdapter.ViewHo
             tvProductPrice = itemView.findViewById(R.id.tv_product_price);
             tvProductQuantity = itemView.findViewById(R.id.tv_product_quantity);
             productInfo = itemView.findViewById(R.id.product_info);
+            tvCartQuantity = itemView.findViewById(R.id.tv_cart_quantity);
 
         }
 
@@ -106,6 +121,19 @@ public class ProductsAdapter extends RecyclerView.Adapter<ProductsAdapter.ViewHo
         if (products != null && !products.isEmpty()) {
             this.products.addAll(products);
         }
+        notifyDataSetChanged();
+    }
+
+    public void setProductQuantity(int productId, int quantity) {
+        productQuantity.put(productId, quantity);
+        int position = products.stream().findFirst().filter(product -> product.get_productId() == productId).map(products::indexOf).orElse(-1);
+        if (position != -1){
+            notifyItemChanged(position);
+        }
+    }
+
+    public void clearProductQuantity() {
+        productQuantity.clear();
         notifyDataSetChanged();
     }
 }

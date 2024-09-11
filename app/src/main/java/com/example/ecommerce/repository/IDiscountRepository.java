@@ -12,4 +12,6 @@ public interface IDiscountRepository {
     void clearCurrentDiscount() throws Exception;
 
     double getDiscountAmount(double totalAmount, IApplyDiscountCallback callback) throws Exception;
+
+    Discount getDiscountById(int discountId) throws Exception;
 }
