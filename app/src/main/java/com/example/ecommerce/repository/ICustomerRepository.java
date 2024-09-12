@@ -4,10 +4,12 @@ import com.example.ecommerce.model.Customer;
 
 import java.util.ArrayList;
 
+import io.reactivex.rxjava3.core.Single;
+
 public interface ICustomerRepository {
     int newCustomerHandler(Customer customer);
     Customer getCustomerByIdHandler(int customerId);
-    ArrayList<Customer> getAllCustomersHandler();
+    Single<ArrayList<Customer>> getAllCustomersHandler();
     void setCurrentCustomerHandler(int customerId);
     Customer getCurrentCustomerHandler();
     void clearCurrentCustomerHandler();

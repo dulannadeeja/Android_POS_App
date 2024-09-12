@@ -16,6 +16,8 @@ firebaseDatabase = "21.0.0"
 legacySupportV4 = "1.0.0"
 lifecycleLivedataKtx = "2.8.4"
 lifecycleViewmodelKtx = "2.8.4"
+rxandroid = "3.0.2"
+rxjava = "3.x.y"
 
 [libraries]
 compiler = { module = "com.github.bumptech.glide:compiler", version.ref = "glide" }
@@ -34,6 +36,8 @@ firebase-database = { group = "com.google.firebase", name = "firebase-database",
 legacy-support-v4 = { group = "androidx.legacy", name = "legacy-support-v4", version.ref = "legacySupportV4" }
 lifecycle-livedata-ktx = { group = "androidx.lifecycle", name = "lifecycle-livedata-ktx", version.ref = "lifecycleLivedataKtx" }
 lifecycle-viewmodel-ktx = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-ktx", version.ref = "lifecycleViewmodelKtx" }
+rxandroid = { module = "io.reactivex.rxjava3:rxandroid", version.ref = "rxandroid" }
+rxjava = { module = "io.reactivex.rxjava3:rxjava", version.ref = "rxjava" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

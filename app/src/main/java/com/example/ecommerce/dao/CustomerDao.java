@@ -11,6 +11,10 @@ import com.example.ecommerce.utils.DatabaseHelper;
 
 import java.util.ArrayList;
 
+import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
+import io.reactivex.rxjava3.core.Single;
+import io.reactivex.rxjava3.schedulers.Schedulers;
+
 public class CustomerDao implements ICustomerDao {
     private DatabaseHelper databaseHelper;
 
@@ -66,30 +70,47 @@ public class CustomerDao implements ICustomerDao {
 
     @SuppressLint("Range")
     @Override
-    public ArrayList<Customer> getAllCustomers() {
-        try (SQLiteDatabase db = databaseHelper.getReadableDatabase()) {
-            String query = "SELECT * FROM " + DatabaseHelper.TABLE_CUSTOMERS + " ORDER BY " + DatabaseHelper.COLUMN_CUSTOMER_ID + " DESC";
-            Cursor cursor = db.rawQuery(query, null);
-            ArrayList<Customer> customers = new ArrayList<>();
-            while (cursor.moveToNext()) {
-                Customer customer = new Customer.CustomerBuilder()
-                        .withCustomerId(cursor.getInt(cursor.getColumnIndex(DatabaseHelper.COLUMN_CUSTOMER_ID)))
-                        .withName(cursor.getString(cursor.getColumnIndex(DatabaseHelper.COLUMN_CUSTOMER_FIRST_NAME)),
-                                cursor.getString(cursor.getColumnIndex(DatabaseHelper.COLUMN_CUSTOMER_LAST_NAME)))
-                        .withEmail(cursor.getString(cursor.getColumnIndex(DatabaseHelper.COLUMN_CUSTOMER_EMAIL)))
-                        .withPhone(cursor.getString(cursor.getColumnIndex(DatabaseHelper.COLUMN_CUSTOMER_PHONE)))
-                        .withAddress(cursor.getString(cursor.getColumnIndex(DatabaseHelper.COLUMN_CUSTOMER_ADDRESS)),cursor.getString(cursor.getColumnIndex(DatabaseHelper.COLUMN_CUSTOMER_CITY)),cursor.getString(cursor.getColumnIndex(DatabaseHelper.COLUMN_CUSTOMER_REGION)))
-                        .withGender(cursor.getString(cursor.getColumnIndex(DatabaseHelper.COLUMN_CUSTOMER_GENDER)))
-                        .withPhoto(cursor.getString(cursor.getColumnIndex(DatabaseHelper.COLUMN_CUSTOMER_PHOTO)))
-                        .buildCustomer();
-                customers.add(customer);
-            }
-            cursor.close();
-            return customers;
-        } catch (SQLiteException e) {
-            throw new RuntimeException("Error getting all customers", e);
-        }
+    public Single<ArrayList<Customer>> getAllCustomers() {
+        return Single.<ArrayList<Customer>>create(emitter -> {
+                    SQLiteDatabase db = null;
+                    Cursor cursor = null;
+                    try {
+                        db = databaseHelper.getReadableDatabase();
+                        String query = "SELECT * FROM " + DatabaseHelper.TABLE_CUSTOMERS + " ORDER BY " + DatabaseHelper.COLUMN_CUSTOMER_ID + " DESC";
+                        cursor = db.rawQuery(query, null);
+                        ArrayList<Customer> customers = new ArrayList<>();
+
+                        while (cursor.moveToNext()) {
+                            Customer customer = new Customer.CustomerBuilder()
+                                    .withCustomerId(cursor.getInt(cursor.getColumnIndex(DatabaseHelper.COLUMN_CUSTOMER_ID)))
+                                    .withName(cursor.getString(cursor.getColumnIndex(DatabaseHelper.COLUMN_CUSTOMER_FIRST_NAME)),
+                                            cursor.getString(cursor.getColumnIndex(DatabaseHelper.COLUMN_CUSTOMER_LAST_NAME)))
+                                    .withEmail(cursor.getString(cursor.getColumnIndex(DatabaseHelper.COLUMN_CUSTOMER_EMAIL)))
+                                    .withPhone(cursor.getString(cursor.getColumnIndex(DatabaseHelper.COLUMN_CUSTOMER_PHONE)))
+                                    .withAddress(cursor.getString(cursor.getColumnIndex(DatabaseHelper.COLUMN_CUSTOMER_ADDRESS)),
+                                            cursor.getString(cursor.getColumnIndex(DatabaseHelper.COLUMN_CUSTOMER_CITY)),
+                                            cursor.getString(cursor.getColumnIndex(DatabaseHelper.COLUMN_CUSTOMER_REGION)))
+                                    .withGender(cursor.getString(cursor.getColumnIndex(DatabaseHelper.COLUMN_CUSTOMER_GENDER)))
+                                    .withPhoto(cursor.getString(cursor.getColumnIndex(DatabaseHelper.COLUMN_CUSTOMER_PHOTO)))
+                                    .buildCustomer();
+                            customers.add(customer);
+                        }
+                        emitter.onSuccess(customers);
+                    } catch (SQLiteException e) {
+                        emitter.onError(e);
+                    } finally {
+                        if (cursor != null && !cursor.isClosed()) {
+                            cursor.close();
+                        }
+                        if (db != null && db.isOpen()) {
+                            db.close();
+                        }
+                    }
+                })
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread());
     }
+
 
     @Override
     public void updateCustomer(Customer customer) {

@@ -12,6 +12,8 @@ import com.example.ecommerce.model.Order;
 import java.util.ArrayList;
 import java.util.concurrent.atomic.AtomicReference;
 
+import io.reactivex.rxjava3.core.Single;
+
 public class CustomerRepository implements ICustomerRepository {
     private ICustomerDao customerDao;
     private IOrderDao orderDao;
@@ -51,7 +53,7 @@ public class CustomerRepository implements ICustomerRepository {
     }
 
     @Override
-    public ArrayList<Customer> getAllCustomersHandler() {
+    public Single<ArrayList<Customer>> getAllCustomersHandler() {
         try {
             return customerDao.getAllCustomers();
         } catch (Exception e) {

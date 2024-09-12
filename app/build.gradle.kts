@@ -36,7 +36,6 @@ android {
 }
 
 dependencies {
-
     implementation(libs.appcompat)
     implementation(libs.material)
     implementation(libs.activity)
@@ -50,4 +49,6 @@ dependencies {
     androidTestImplementation(libs.espresso.core)
     implementation (libs.glide)
     annotationProcessor (libs.compiler)
+    implementation(libs.rxandroid)
+    implementation(libs.rxjava)
 }
