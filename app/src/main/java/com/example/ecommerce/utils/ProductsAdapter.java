@@ -17,6 +17,7 @@ import com.example.ecommerce.ui.products.OnItemClickListener;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 
 public class ProductsAdapter extends RecyclerView.Adapter<ProductsAdapter.ViewHolder> {
@@ -126,9 +127,14 @@ public class ProductsAdapter extends RecyclerView.Adapter<ProductsAdapter.ViewHo
 
     public void setProductQuantity(int productId, int quantity) {
         productQuantity.put(productId, quantity);
-        int position = products.stream().findFirst().filter(product -> product.get_productId() == productId).map(products::indexOf).orElse(-1);
-        if (position != -1){
-            notifyItemChanged(position);
+        AtomicInteger position = new AtomicInteger(-1);
+        products.forEach(product -> {
+            if (product.get_productId() == productId) {
+                position.set(products.indexOf(product));
+            }
+        });
+        if (position.get() != -1){
+            notifyItemChanged(position.get());
         }
     }
 
