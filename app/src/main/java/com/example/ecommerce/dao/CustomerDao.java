@@ -68,18 +68,16 @@ public class CustomerDao implements ICustomerDao {
         }
     }
 
-    @SuppressLint("Range")
     @Override
+    @SuppressLint("Range")
     public Single<ArrayList<Customer>> getAllCustomers() {
         return Single.<ArrayList<Customer>>create(emitter -> {
-                    SQLiteDatabase db = null;
-                    Cursor cursor = null;
-                    try {
-                        db = databaseHelper.getReadableDatabase();
-                        String query = "SELECT * FROM " + DatabaseHelper.TABLE_CUSTOMERS + " ORDER BY " + DatabaseHelper.COLUMN_CUSTOMER_ID + " DESC";
-                        cursor = db.rawQuery(query, null);
+                    try (SQLiteDatabase db = databaseHelper.getReadableDatabase();
+                         Cursor cursor = db.rawQuery("SELECT * FROM " + DatabaseHelper.TABLE_CUSTOMERS + " ORDER BY " + DatabaseHelper.COLUMN_CUSTOMER_ID + " DESC", null)) {
+
                         ArrayList<Customer> customers = new ArrayList<>();
 
+                        // Loop through the cursor to get all customers
                         while (cursor.moveToNext()) {
                             Customer customer = new Customer.CustomerBuilder()
                                     .withCustomerId(cursor.getInt(cursor.getColumnIndex(DatabaseHelper.COLUMN_CUSTOMER_ID)))
@@ -95,22 +93,16 @@ public class CustomerDao implements ICustomerDao {
                                     .buildCustomer();
                             customers.add(customer);
                         }
+
+                        // Emit the list of customers
                         emitter.onSuccess(customers);
                     } catch (SQLiteException e) {
                         emitter.onError(e);
-                    } finally {
-                        if (cursor != null && !cursor.isClosed()) {
-                            cursor.close();
-                        }
-                        if (db != null && db.isOpen()) {
-                            db.close();
-                        }
                     }
                 })
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread());
     }
-
 
     @Override
     public void updateCustomer(Customer customer) {

@@ -73,10 +73,14 @@ public class ProductDao implements IProductDao {
     @SuppressLint("Range")
     @Override
     public ArrayList<Product> getAllProducts() {
-        try (SQLiteDatabase db = databaseHelper.getReadableDatabase()) {
 
-            Cursor cursor = db.rawQuery("SELECT * FROM " + DatabaseHelper.TABLE_PRODUCTS, null);
+        SQLiteDatabase db = databaseHelper.getReadableDatabase();
+        Cursor cursor = db.rawQuery("SELECT * FROM " + DatabaseHelper.TABLE_PRODUCTS, null);
+
+        try {
+
             ArrayList<Product> products = new ArrayList<>();
+
             // loop through the cursor
             if (cursor.moveToFirst()) {
                 do {
@@ -93,16 +97,15 @@ public class ProductDao implements IProductDao {
                             .withImage(cursor.getString(cursor.getColumnIndex(DatabaseHelper.COLUMN_PRODUCT_IMAGE)))
                             .buildProduct();
 
-
                     products.add(product);
                 } while (cursor.moveToNext());
-
-                cursor.close();
                 return products;
             }
 
         } catch (Exception e) {
             throw new RuntimeException("Error getting products, From product dao", e);
+        } finally {
+            cursor.close();
         }
         return new ArrayList<>();
     }

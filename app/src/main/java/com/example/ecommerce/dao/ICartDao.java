@@ -5,11 +5,15 @@ import com.example.ecommerce.model.CartItem;
 
 import java.util.ArrayList;
 
+import io.reactivex.rxjava3.core.Completable;
+import io.reactivex.rxjava3.core.Maybe;
+import io.reactivex.rxjava3.core.Single;
+
 public interface ICartDao {
-    ArrayList<CartItem> getCartItems() throws Exception;
-    void createCartItem(int productId) throws Exception;
-    void deleteCartItem(int productId) throws Exception;
-    void updateCartItem(int productId, int quantity) throws Exception;
-    void clearCart() throws Exception;
-    CartItem getCartItem(int productId) throws Exception;
+    Single<ArrayList<CartItem>> getAllCartItems();
+    Completable createCartItem(int productId) throws Exception;
+    Completable deleteCartItem(int productId) throws Exception;
+    Completable updateCartItem(int productId, int quantity);
+    Completable clearCart() throws Exception;
+    Maybe<CartItem> getCartItem(int productId);
 }

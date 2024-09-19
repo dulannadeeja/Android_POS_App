@@ -34,9 +34,9 @@ public class CheckoutViewModel extends ViewModel {
 
     public void init(){
         try{
-            Cart cart = cartRepository.getCart();
-            this.cart.setValue(cart);
-            payingAmount.setValue(cart.getCartSubTotalPrice());
+//            Cart cart = cartRepository.getCart();
+//            this.cart.setValue(cart);
+//            payingAmount.setValue(cart.getCartSubTotalPrice());
         }catch (Exception e){
             Log.e(TAG, "Checkout init failed! ", e);
         }

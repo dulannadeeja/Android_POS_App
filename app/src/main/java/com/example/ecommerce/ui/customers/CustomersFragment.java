@@ -105,4 +105,10 @@ public class CustomersFragment extends DialogFragment implements OnCustomerClick
     public void dismiss() {
         super.dismiss();
     }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        customersViewModel.dispose();
+    }
 }

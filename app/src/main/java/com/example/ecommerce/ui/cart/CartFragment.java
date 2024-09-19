@@ -136,7 +136,7 @@ public class CartFragment extends Fragment implements OnCartItemClickListener {
 
     @Override
     public void onCartItemRemoveClick(int cartItemId) {
-        cartViewModel.onDecreaseProductQuantity(cartItemId, new OnCartOperationCompleted() {
+        cartViewModel.onDecrementProductQuantity(cartItemId, new OnCartOperationCompleted() {
             @Override
             public void onSuccessfulCartOperation() {
                 Toast.makeText(getContext(), "Item removed from cart", Toast.LENGTH_SHORT).show();
@@ -165,5 +165,8 @@ public class CartFragment extends Fragment implements OnCartItemClickListener {
         toolbar.setTitle("");
         TextView tvGoToCart = toolbar.findViewById(R.id.go_to_cart);
         tvGoToCart.setVisibility(View.VISIBLE);
+
+        // Clear the cart view model
+        cartViewModel.dispose();
     }
 }

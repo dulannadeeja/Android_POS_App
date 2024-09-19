@@ -38,6 +38,8 @@ import com.example.ecommerce.ui.discount.DiscountViewModelFactory;
 import com.example.ecommerce.ui.products.ProductsViewModelFactory;
 import com.example.ecommerce.utils.DatabaseHelper;
 
+import kotlin.jvm.Synchronized;
+
 interface IAppModule {
     Context provideAppContext();
 

@@ -29,7 +29,8 @@ public class CustomersViewModel extends ViewModel {
 
     public void onLoadCustomers() {
         Single<ArrayList<Customer>> customersSingle = repository.getAllCustomersHandler();
-        compositeDisposable.add(customersSingle.subscribeOn(Schedulers.io())
+        compositeDisposable.add(customersSingle
+                .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(cart -> {
                     customers.postValue(cart);
@@ -40,6 +41,10 @@ public class CustomersViewModel extends ViewModel {
 
     public MutableLiveData<ArrayList<Customer>> getCustomers() {
         return customers;
+    }
+
+    public void dispose() {
+        compositeDisposable.dispose();
     }
 
     // Clear the compositeDisposable
