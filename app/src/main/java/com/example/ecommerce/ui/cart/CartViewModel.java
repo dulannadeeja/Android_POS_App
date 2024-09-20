@@ -18,8 +18,10 @@ import com.example.ecommerce.repository.IDiscountRepository;
 import com.example.ecommerce.repository.IOrderRepository;
 
 import java.util.ArrayList;
+import java.util.Objects;
 
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
+import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.disposables.CompositeDisposable;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 
@@ -31,177 +33,140 @@ public class CartViewModel extends ViewModel {
     private static final MutableLiveData<Boolean> isLoading = new MutableLiveData<>(false);
     private static final MutableLiveData<String> errorMessage = new MutableLiveData<>("");
     private static final MutableLiveData<Cart> cart = new MutableLiveData<>();
-    private final Boolean isOpenOrder = false;
     private final CompositeDisposable compositeDisposable = new CompositeDisposable();
 
     public CartViewModel(ICartRepository repository, IDiscountRepository discountRepository, IOrderRepository orderRepository) {
         this.repository = repository;
         this.discountRepository = discountRepository;
         this.orderRepository = orderRepository;
-        setCart();
-        setDiscount();
+        onFetchCart();
+        onApplyCurrentDiscount();
     }
 
-    public void setCart() {
-        try {
-            isLoading.setValue(true);
-            compositeDisposable.add(
-                    repository.getCartHandler()
-                            .subscribeOn(Schedulers.io())
-                            .observeOn(AndroidSchedulers.mainThread())
-                            .subscribe(cart::postValue, throwable -> {
-                                Log.e("cartViewModel", "Error fetching cart", throwable);
-                                errorMessage.setValue("Error fetching cart");
-                            })
-            );
-            errorMessage.setValue("");
-        } catch (Exception e) {
-            Log.e("cartViewModel", "Error fetching cart", e);
-            errorMessage.setValue("Error fetching cart");
-        } finally {
-            isLoading.setValue(false);
-        }
+    public void onFetchCart() {
+        isLoading.setValue(true);
+        compositeDisposable.add(
+                repository.getCartHandler()
+                        .subscribeOn(Schedulers.io())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe((fetchedCart) ->{
+                            cart.postValue(fetchedCart);
+                            errorMessage.postValue("");
+                        }, throwable -> {
+                            Log.e("cartViewModel", "Error fetching cart", throwable);
+                            errorMessage.postValue("Error fetching cart");
+                        }));
+        errorMessage.setValue("");
+        isLoading.setValue(false);
     }
 
-    public void setDiscount() {
-        try {
-            Log.d(TAG, "setDiscount:");
-            isLoading.setValue(true);
-            if (cart.getValue() == null || cart.getValue().getCartTotalPrice() == 0) {
-                return;
-            }
-            discountRepository.getDiscountAmount(cart.getValue().getCartTotalPrice(), new IApplyDiscountCallback() {
-                @Override
-                public void onDiscountApplied(double discountAmount, int discountId) {
-                    cart.getValue().setDiscountValue(discountAmount);
-                    cart.getValue().setDiscountId(discountId);
-                    cart.getValue().calculateCartTotalPrice();
-                    cart.setValue(cart.getValue().clone());
-                }
+    public void onApplyCurrentDiscount() {
+        isLoading.setValue(true);
 
-                @Override
-                public void onDiscountError(String error) {
-                    errorMessage.setValue(error);
-                    cart.getValue().setDiscountValue(0);
-                    cart.getValue().setDiscountId(-1);
-                    cart.getValue().calculateCartTotalPrice();
-                    cart.setValue(cart.getValue().clone());
-                }
-            });
-
-            errorMessage.setValue("");
-        } catch (Exception e) {
-            Log.e("cartViewModel", "Error fetching discount", e);
-            errorMessage.setValue("Error fetching discount");
-        } finally {
+        if(cart == null || cart.getValue() == null) {
             isLoading.setValue(false);
+            return;
         }
+
+        compositeDisposable.add(
+                discountRepository.applyCurrentDiscountHandler(Objects.requireNonNull(cart.getValue()).getCartSubTotalPrice())
+                        .flatMapCompletable(currentDiscount -> {
+                            int discountId = Integer.parseInt(Objects.requireNonNull(currentDiscount.get("discountId")).toString());
+                            double discountAmount = Double.parseDouble(Objects.requireNonNull(currentDiscount.get("discountAmount")).toString());
+                            Log.d(TAG, "Applying discount: " + discountId + " with amount: " + discountAmount);
+                            // Apply the discount and then fetch the updated cart
+                            return repository.applyDiscountToCart(discountId, discountAmount);
+                        })
+                        .subscribeOn(Schedulers.io())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe(
+                                () -> {
+                                    onFetchCart();
+                                    errorMessage.postValue("");
+                                },
+                                throwable -> {
+                                    Log.e("cartViewModel", "Error applying discount", throwable);
+                                    errorMessage.postValue("Error applying discount");
+                                }
+                        )
+        );
+
+        errorMessage.setValue("");
+        isLoading.setValue(false);
     }
 
     public void onAddToCart(int productId, OnCartOperationCompleted callback) {
-        try {
-            Log.d(TAG, "onAddToCart: ");
-            isLoading.setValue(true);
-            compositeDisposable.add(
-                    repository.addProductToCart(productId)
-                            .subscribeOn(Schedulers.io())
-                            .observeOn(AndroidSchedulers.mainThread())
-                            .subscribe(() -> {
-                                setCart();
-                                setDiscount();
-                                errorMessage.setValue("");
-                                callback.onSuccessfulCartOperation();
-                            }, throwable -> {
-                                Log.e("cartViewModel", "Error adding product to cart", throwable);
-                                errorMessage.setValue("Error adding product to cart");
-                                callback.onFailedCartOperation("Looks like the product is out of stock");
-                            })
-            );
-            errorMessage.setValue("");
-        } catch (Exception e) {
-            Log.e("cartViewModel", "Error adding product to cart", e);
-            errorMessage.setValue("Error adding product to cart");
-            callback.onFailedCartOperation("Looks like the product is out of stock");
-        } finally {
-            isLoading.setValue(false);
-        }
+        isLoading.setValue(true);
+
+        compositeDisposable.add(
+                repository.addProductToCart(productId)
+                        .subscribeOn(Schedulers.io())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe(() -> {
+                            onFetchCart();
+                            errorMessage.postValue("");
+                            callback.onSuccessfulCartOperation();
+                        }, throwable -> {
+                            errorMessage.postValue("Error adding product to cart");
+                            callback.onFailedCartOperation("Looks like the product is out of stock");
+                        }));
+
+        // Ensure the loading state is reset
+        errorMessage.setValue("");
+        isLoading.setValue(false);
     }
 
     public void onDecrementProductQuantity(int productId, OnCartOperationCompleted callback) {
-        try {
-            isLoading.setValue(true);
-            compositeDisposable.add(
-                    repository.decrementProductQuantity(productId)
-                            .subscribeOn(Schedulers.io())
-                            .observeOn(AndroidSchedulers.mainThread())
-                            .subscribe(() -> {
-                                setCart();
-                                setDiscount();
-                                errorMessage.setValue("");
-                                callback.onSuccessfulCartOperation();
-                            }, throwable -> {
-                                Log.e("cartViewModel", "Error decreasing product quantity", throwable);
-                                errorMessage.setValue("Something went wrong, please try again");
-                                callback.onFailedCartOperation("Something went wrong, please try again");
-                            })
-                    );
-            errorMessage.setValue("");
-        } catch (Exception e) {
-            Log.e("cartViewModel", "Error decreasing product quantity", e);
-            errorMessage.setValue("Something went wrong, please try again");
-            callback.onFailedCartOperation("Something went wrong, please try again");
-        } finally {
-            isLoading.setValue(false);
-        }
+        isLoading.setValue(true);
+        compositeDisposable.add(
+                repository.decrementProductQuantity(productId)
+                        .subscribeOn(Schedulers.io())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe(() -> {
+                            onFetchCart();
+                            errorMessage.postValue("");
+                            callback.onSuccessfulCartOperation();
+                        }, throwable -> {
+                            Log.e("cartViewModel", "Error decreasing product quantity", throwable);
+                            errorMessage.postValue("Something went wrong, please try again");
+                            callback.onFailedCartOperation("Something went wrong, please try again");
+                        }));
+        errorMessage.setValue("");
+        isLoading.setValue(false);
     }
 
     public void onRemoveFromCart(int productId) {
-        try {
-            isLoading.setValue(true);
-            compositeDisposable.add(
-                    repository.removeProductFromCart(productId)
-                            .subscribeOn(Schedulers.io())
-                            .observeOn(AndroidSchedulers.mainThread())
-                            .subscribe(() -> {
-                                setCart();
-                                setDiscount();
-                                errorMessage.setValue("");
-                            }, throwable -> {
-                                Log.e("cartViewModel", "Error removing product from cart", throwable);
-                                errorMessage.setValue("Error removing product from cart");
-                            })
-            );
-            errorMessage.setValue("");
-        } catch (Exception e) {
-            Log.e("cartViewModel", "Error removing product from cart", e);
-            errorMessage.setValue("Error removing product from cart");
-        } finally {
-            isLoading.setValue(false);
-        }
+        isLoading.setValue(true);
+        compositeDisposable.add(
+                repository.removeProductFromCart(productId)
+                        .subscribeOn(Schedulers.io())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe(() -> {
+                            onFetchCart();
+                            errorMessage.postValue("");
+                        }, throwable -> {
+                            Log.e("cartViewModel", "Error removing product from cart", throwable);
+                            errorMessage.postValue("Error removing product from cart");
+                        }));
+        errorMessage.setValue("");
+        isLoading.setValue(false);
     }
 
     public void onClearCart() {
-        try {
-            isLoading.setValue(true);
-            compositeDisposable.add(
-                    repository.clearCart()
-                            .subscribeOn(Schedulers.io())
-                            .observeOn(AndroidSchedulers.mainThread())
-                            .subscribe(() -> {
-                                setCart();
-                                errorMessage.setValue("");
-                            }, throwable -> {
-                                Log.e("cartViewModel", "Error clearing cart", throwable);
-                                errorMessage.setValue("Error clearing cart");
-                            })
-            );
-            errorMessage.setValue("");
-        } catch (Exception e) {
-            Log.e("cartViewModel", "Error clearing cart", e);
-            errorMessage.setValue("Error clearing cart");
-        } finally {
-            isLoading.setValue(false);
-        }
+        isLoading.setValue(true);
+        compositeDisposable.add(
+                repository.clearCart()
+                        .subscribeOn(Schedulers.io())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe(() -> {
+                            onFetchCart();
+                            errorMessage.postValue("");
+                        }, throwable -> {
+                            Log.e("cartViewModel", "Error clearing cart", throwable);
+                            errorMessage.postValue("Error clearing cart");
+                        }));
+        errorMessage.setValue("");
+        isLoading.setValue(false);
     }
 
     public void onSavePendingOrder(OnSavedPendingOrderCallback callback) {
@@ -209,7 +174,7 @@ public class CartViewModel extends ViewModel {
             int customerId = 0;
             if (App.appModule.provideCustomerSharedPreferences().contains("activeCustomerId")) {
                 customerId = Integer.parseInt(App.appModule.provideCustomerSharedPreferences().getString("activeCustomerId", ""));
-                long orderId = orderRepository.handleNewOrder(cart.getValue().getCartItems(), cart.getValue().getCartTotalPrice(), cart.getValue().getCartTotalTax(), cart.getValue().getCartSubTotalPrice(), cart.getValue().getDiscountId(), cart.getValue().getDiscountValue(), customerId);
+                long orderId = orderRepository.handleNewOrder(cart.getValue().getCartItems(), cart.getValue().getCartTotalPrice(), cart.getValue().getCartTotalTaxAndCharges(), cart.getValue().getCartSubTotalPrice(), cart.getValue().getDiscountId(), cart.getValue().getDiscountValue(), customerId);
                 callback.onSuccessfulOrderSaved();
             } else {
                 callback.onFailedOrderSaved("Please add a customer to save order");
@@ -235,8 +200,7 @@ public class CartViewModel extends ViewModel {
                     }
                 }
             });
-            setCart();
-            setDiscount();
+            onFetchCart();
         } catch (Exception e) {
             Log.e(TAG, "Error loading open order to cart", e);
             errorMessage.setValue("Error loading open order to cart");
@@ -255,8 +219,8 @@ public class CartViewModel extends ViewModel {
         return cart;
     }
 
-    public void dispose () {
-        Log.d(TAG,"disposing cart view model threads");
+    public void dispose() {
+        Log.d(TAG, "disposing cart view model threads");
         compositeDisposable.clear();
     }
 

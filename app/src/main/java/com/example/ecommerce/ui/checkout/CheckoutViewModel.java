@@ -52,7 +52,7 @@ public class CheckoutViewModel extends ViewModel {
             int customerId = 0;
             if(sharedPreferences.contains("activeCustomerId")) {
                 customerId = Integer.parseInt(sharedPreferences.getString("activeCustomerId", ""));
-                long orderId = orderRepository.handleNewOrder(cart.getValue().getCartItems(),cart.getValue().getCartTotalPrice(), cart.getValue().getCartTotalTax(), cart.getValue().getCartSubTotalPrice(), cart.getValue().getDiscountId(), cart.getValue().getDiscountValue(), customerId);
+                long orderId = orderRepository.handleNewOrder(cart.getValue().getCartItems(),cart.getValue().getCartTotalPrice(), cart.getValue().getCartTotalTaxAndCharges(), cart.getValue().getCartSubTotalPrice(), cart.getValue().getDiscountId(), cart.getValue().getDiscountValue(), customerId);
                 paymentRepository.handlePayment(paymentMethod.getValue(),payingAmount.getValue(),(int)orderId);
                 orderRepository.makeOrderPayment(payingAmount.getValue(),(int)orderId);
                 callback.onSuccessfulOrderPlaced();

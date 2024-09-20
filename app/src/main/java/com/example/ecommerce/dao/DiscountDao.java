@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.Locale;
 
+import io.reactivex.rxjava3.core.Single;
 import kotlin.Suppress;
 
 public class DiscountDao implements IDiscountDao {
@@ -35,8 +36,7 @@ public class DiscountDao implements IDiscountDao {
             args.put(DatabaseHelper.COLUMN_DISCOUNT_TYPE, discount.getDiscountType());
             args.put(DatabaseHelper.COLUMN_DISCOUNT_VALUE, discount.getDiscountValue());
 
-            int discountId = (int) db.insertOrThrow(DatabaseHelper.TABLE_DISCOUNTS, null, args);
-            return discountId;
+            return (int) db.insertOrThrow(DatabaseHelper.TABLE_DISCOUNTS, null, args);
         } catch (Exception e) {
             throw new RuntimeException("Error creating discount", e);
         }

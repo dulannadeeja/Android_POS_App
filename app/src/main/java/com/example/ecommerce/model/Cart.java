@@ -1,96 +1,136 @@
 package com.example.ecommerce.model;
 
+import androidx.annotation.NonNull;
+
 import java.util.ArrayList;
 
 public class Cart implements Cloneable{
-    private int totalItems;
     private double cartSubTotalPrice;
-    private int discount_id;
-    private double discount_value;
-    private double cartTotalTax;
+    private double cartTotalTaxAndCharges;
     private double cartTotalPrice;
+    private Boolean isOpenOrder;
+    private int orderId;
+    private Boolean isDiscountApplied;
+    private int discountId;
+    private double discountValue;
+    private Boolean isCartEmpty;
     private ArrayList<CartItem> cartItems;
+    private int totalItems;
 
-    public Cart(int totalItems, double cartSubTotalPrice, ArrayList<CartItem> cartItems, double cartTotalTax, int discount_id, double discount_value) {
-        this.totalItems = totalItems;
+    public Cart(double cartSubTotalPrice,double cartTotalTaxAndCharges,int orderId,int discountId,double discountValue, ArrayList<CartItem> cartItems) {
         this.cartSubTotalPrice = cartSubTotalPrice;
-        this.cartTotalTax = cartTotalTax;
+        this.cartTotalTaxAndCharges = cartTotalTaxAndCharges;
+        this.cartTotalPrice = calculateCartTotalPrice(discountId > 0, discountValue, cartSubTotalPrice, cartTotalTaxAndCharges);
+        this.isOpenOrder = orderId > 0;
+        this.orderId = orderId;
+        this.isDiscountApplied = discountId > 0 && discountValue > 0;
+        this.discountId = discountId;
+        this.discountValue = discountValue;
+        this.isCartEmpty = cartItems.isEmpty();
         this.cartItems = cartItems;
-        this.discount_id = discount_id;
-        this.discount_value = discount_value;
-        this.cartTotalPrice = cartSubTotalPrice + cartTotalTax - discount_value;
+        this.totalItems = getCartTotalItems(cartItems);
     }
 
-    public int getTotalItems() {
-        return totalItems;
+    private int getCartTotalItems(ArrayList<CartItem> cartItems) {
+        if(cartItems == null || cartItems.isEmpty()){
+            return 0;
+        }
+        return cartItems.stream().mapToInt(CartItem::getQuantity).sum();
+    }
+
+    private double calculateCartTotalPrice(boolean isDiscountApplied, double discountValue, double cartSubTotalPrice, double cartTotalTax) {
+        double cartTotalPrice = cartSubTotalPrice + cartTotalTax - (isDiscountApplied ? discountValue : 0);
+        return Math.max(cartTotalPrice, 0);
+    }
+
+    public static class CartBuilder {
+        private double cartSubTotalPrice = 0;
+        private double cartTotalTaxAndCharges = 0;
+        private int orderId = -1;
+        private int discountId = -1;
+        private double discountValue = 0;
+        private ArrayList<CartItem> cartItems = new ArrayList<>();
+
+        public CartBuilder withCartSubTotalPrice(double cartSubTotalPrice){
+            this.cartSubTotalPrice = cartSubTotalPrice;
+            return this;
+        }
+
+        public CartBuilder withCartTotalTaxAndCharges(double cartTotalTaxAndCharges){
+            this.cartTotalTaxAndCharges = cartTotalTaxAndCharges;
+            return this;
+        }
+
+        public CartBuilder withOrderId(int orderId){
+            this.orderId = orderId;
+            return this;
+        }
+
+        public CartBuilder withDiscount(int discountId, double discountValue){
+            this.discountId = discountId;
+            this.discountValue = discountValue;
+            return this;
+        }
+
+        public CartBuilder withCartItems(ArrayList<CartItem> cartItems){
+            this.cartItems = cartItems;
+            return this;
+        }
+
+        public Cart build(){
+            return new Cart(cartSubTotalPrice,cartTotalTaxAndCharges,orderId,discountId,discountValue,cartItems);
+        }
     }
 
     public double getCartSubTotalPrice() {
         return cartSubTotalPrice;
     }
 
-    public double getCartTotalTax() {
-        return cartTotalTax;
+    public double getCartTotalTaxAndCharges() {
+        return cartTotalTaxAndCharges;
     }
 
     public double getCartTotalPrice() {
         return cartTotalPrice;
     }
 
+    public Boolean isOpenOrder() {
+        return isOpenOrder;
+    }
+
+    public int getOrderId() {
+        return orderId;
+    }
+
+    public Boolean isDiscountApplied() {
+        return isDiscountApplied;
+    }
+
+    public int getDiscountId() {
+        return discountId;
+    }
+
+    public double getDiscountValue() {
+        return discountValue;
+    }
+
+    public Boolean isCartEmpty() {
+        return isCartEmpty;
+    }
+
     public ArrayList<CartItem> getCartItems() {
         return cartItems;
     }
 
-    public int getDiscountId() {
-        return discount_id;
+    public int getTotalItems() {
+        return totalItems;
     }
 
-    public double getDiscountValue() {
-        return discount_value;
-    }
-
-    public void setTotalItems(int totalItems) {
-        this.totalItems = totalItems;
-    }
-
-    public void setCartSubTotalPrice(double cartSubTotalPrice) {
-        this.cartSubTotalPrice = cartSubTotalPrice;
-    }
-
-    public void setCartTotalTax(double cartTotalTax) {
-        this.cartTotalTax = cartTotalTax;
-    }
-
-    public void setCartTotalPrice(double cartTotalPrice) {
-        this.cartTotalPrice = cartTotalPrice;
-    }
-
-    public void setCartItems(ArrayList<CartItem> cartItems) {
-        this.cartItems = cartItems;
-    }
-
-    public void setDiscountId(int discount_id) {
-        this.discount_id = discount_id;
-    }
-
-    public void setDiscountValue(double discount_value) {
-        this.discount_value = discount_value;
-    }
-
-    public void calculateCartTotalPrice() {
-        double totalPrice = this.cartSubTotalPrice + this.cartTotalTax - this.discount_value;
-        if(totalPrice < 0) {
-            this.cartTotalPrice = 0;
-        } else {
-            this.cartTotalPrice = totalPrice;
-        }
-    }
-
+    @NonNull
     @Override
     public Cart clone() {
         try {
-            Cart clone = (Cart) super.clone();
-            return clone;
+            return (Cart) super.clone();
         } catch (CloneNotSupportedException e) {
             throw new AssertionError();
         }

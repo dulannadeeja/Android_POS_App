@@ -11,9 +11,9 @@ import io.reactivex.rxjava3.core.Single;
 
 public interface ICartDao {
     Single<ArrayList<CartItem>> getAllCartItems();
-    Completable createCartItem(int productId) throws Exception;
-    Completable deleteCartItem(int productId) throws Exception;
+    Completable createCartItem(int productId);
+    Completable deleteCartItem(int productId);
     Completable updateCartItem(int productId, int quantity);
-    Completable clearCart() throws Exception;
+    Completable clearCart();
     Maybe<CartItem> getCartItem(int productId);
 }

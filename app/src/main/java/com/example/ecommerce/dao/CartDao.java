@@ -67,7 +67,7 @@ public class CartDao implements ICartDao {
     }
 
     @Override
-    public Completable createCartItem(int productId) throws Exception {
+    public Completable createCartItem(int productId) {
         return Completable.fromAction(() -> {
             try (SQLiteDatabase db = databaseHelper.getWritableDatabase()) {
                 Log.d("CartDao", "Creating cart item for product: " + productId);
@@ -80,7 +80,7 @@ public class CartDao implements ICartDao {
     }
 
     @Override
-    public Completable deleteCartItem(int productId) throws Exception {
+    public Completable deleteCartItem(int productId) {
         return Completable.fromAction(()->{
             try (SQLiteDatabase db = databaseHelper.getWritableDatabase()) {
                 db.execSQL("DELETE FROM " + DatabaseHelper.TABLE_CART_ITEMS + " WHERE " + DatabaseHelper.COLUMN_PRODUCT_ID + " = " + productId);

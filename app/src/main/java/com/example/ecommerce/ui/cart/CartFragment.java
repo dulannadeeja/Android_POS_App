@@ -92,7 +92,7 @@ public class CartFragment extends Fragment implements OnCartItemClickListener {
         cartViewModel.getCart().observe(getViewLifecycleOwner(), cart -> {
             Log.d(TAG, "cart has been changed: " + cart);
             cartItemsAdapter.setCartItems(cart.getCartItems());
-            binding.tvTaxAmount.setText(String.valueOf(cart.getCartTotalTax()));
+            binding.tvTaxAmount.setText(String.valueOf(cart.getCartTotalTaxAndCharges()));
             binding.tvTotalAmount.setText(String.valueOf(cart.getCartTotalPrice()));
             binding.tvSubTotalAmount.setText(String.valueOf(cart.getCartSubTotalPrice()));
             binding.tvDiscountAmount.setText(String.valueOf(cart.getDiscountValue()));
@@ -103,9 +103,9 @@ public class CartFragment extends Fragment implements OnCartItemClickListener {
             }
         });
 
+        // Observe the discount changes and apply the discount to the cart
         discountViewModel.getDiscount().observe(getViewLifecycleOwner(), discount -> {
-            Log.d(TAG, "discount has been changed: " + discount);
-            cartViewModel.setDiscount();
+            cartViewModel.onApplyCurrentDiscount();
         });
     }
 

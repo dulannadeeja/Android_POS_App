@@ -109,6 +109,7 @@ public class AppModule implements IAppModule {
     private final CreateCustomerViewModelFactory createCustomerViewModelFactory;
     private final SharedPreferences customerSharedPreferences;
     private final SharedPreferences discountSharedPreferences;
+    private final SharedPreferences cartSharedPreferences;
     private final CustomerViewModelFactory customerViewModelFactory;
 
     public AppModule(Context appContext) {
@@ -116,13 +117,14 @@ public class AppModule implements IAppModule {
         this.application = (Application) appContext.getApplicationContext();
         customerSharedPreferences = appContext.getSharedPreferences("CustomerSharedPreferences", MODE_PRIVATE);
         discountSharedPreferences = appContext.getSharedPreferences("DiscountSharedPreferences", MODE_PRIVATE);
+        cartSharedPreferences = appContext.getSharedPreferences("CartSharedPreferences", MODE_PRIVATE);
         databaseHelper = new DatabaseHelper(appContext);
         productDao = new ProductDao(databaseHelper);
         productRepository = new ProductRepository(productDao);
         discountDao = new DiscountDao(databaseHelper);
-        discountRepository = new DiscountRepository(discountDao);
+        discountRepository = new DiscountRepository(discountDao, discountSharedPreferences);
         cartDao = new CartDao(databaseHelper);
-        cartRepository = new CartRepository(cartDao,productDao);
+        cartRepository = new CartRepository(cartDao,productDao, cartSharedPreferences);
         paymentDao = new PaymentDao(databaseHelper);
         orderDao = new OrderDao(databaseHelper);
         paymentRepository = new PaymentRepository(paymentDao);

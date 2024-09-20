@@ -117,7 +117,6 @@ public class DiscountPopupFragment extends DialogFragment {
         });
 
         binding.clearButton.setOnClickListener(v -> {
-            Toast.makeText(getContext(), "Discount cleared", Toast.LENGTH_SHORT).show();
             discountViewModel.onClearDiscount();
         });
 
