@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import io.reactivex.rxjava3.core.Single;
 import kotlin.Suppress;
 
 public class ProductDao implements IProductDao {
@@ -112,33 +113,37 @@ public class ProductDao implements IProductDao {
 
     @SuppressLint("Range")
     @Override
-    public Product getProductById(int productId) {
-        try (SQLiteDatabase db = databaseHelper.getReadableDatabase()) {
-            Cursor cursor = db.rawQuery("SELECT * FROM " + DatabaseHelper.TABLE_PRODUCTS + " WHERE " + DatabaseHelper.COLUMN_PRODUCT_ID + " = " + productId, null);
-            if (cursor.moveToFirst()) {
-                Product product = new Product.ProductBuilder()
-                        .withProductId(cursor.getInt(cursor.getColumnIndex(DatabaseHelper.COLUMN_PRODUCT_ID)))
-                        .withProductInfo(
-                                cursor.getString(cursor.getColumnIndex(DatabaseHelper.COLUMN_PRODUCT_NAME)),
-                                cursor.getString(cursor.getColumnIndex(DatabaseHelper.COLUMN_PRODUCT_DESCRIPTION)),
-                                cursor.getString(cursor.getColumnIndex(DatabaseHelper.COLUMN_PRODUCT_BRAND)),
-                                cursor.getString(cursor.getColumnIndex(DatabaseHelper.COLUMN_PRODUCT_CATEGORY))
-                        )
-                        .withDiscount(cursor.getDouble(cursor.getColumnIndex(DatabaseHelper.COLUMN_PRODUCT_DISCOUNT)))
-                        .withPricing(
-                                cursor.getDouble(cursor.getColumnIndex(DatabaseHelper.COLUMN_PRODUCT_COST)),
-                                cursor.getDouble(cursor.getColumnIndex(DatabaseHelper.COLUMN_PRODUCT_PRICE))
-                        )
-                        .withQuantity(cursor.getInt(cursor.getColumnIndex(DatabaseHelper.COLUMN_PRODUCT_QUANTITY)))
-                        .withImage(cursor.getString(cursor.getColumnIndex(DatabaseHelper.COLUMN_PRODUCT_IMAGE)))
-                        .buildProduct();
-                cursor.close();
-                return product;
-            }
-        } catch (Exception e) {
-            throw new RuntimeException("Error getting product by id from product dao", e);
-        }
-        return null;
+    public Single<Product> getProductById(int productId) {
+        return Single.create(
+                emitter -> {
+                    try {
+                        SQLiteDatabase db = databaseHelper.getReadableDatabase();
+                        Cursor cursor = db.rawQuery("SELECT * FROM " + DatabaseHelper.TABLE_PRODUCTS + " WHERE " + DatabaseHelper.COLUMN_PRODUCT_ID + " = " + productId, null);
+                        if (cursor.moveToFirst()) {
+                            Product product = new Product.ProductBuilder()
+                                    .withProductId(cursor.getInt(cursor.getColumnIndex(DatabaseHelper.COLUMN_PRODUCT_ID)))
+                                    .withProductInfo(
+                                            cursor.getString(cursor.getColumnIndex(DatabaseHelper.COLUMN_PRODUCT_NAME)),
+                                            cursor.getString(cursor.getColumnIndex(DatabaseHelper.COLUMN_PRODUCT_DESCRIPTION)),
+                                            cursor.getString(cursor.getColumnIndex(DatabaseHelper.COLUMN_PRODUCT_BRAND)),
+                                            cursor.getString(cursor.getColumnIndex(DatabaseHelper.COLUMN_PRODUCT_CATEGORY))
+                                    )
+                                    .withDiscount(cursor.getDouble(cursor.getColumnIndex(DatabaseHelper.COLUMN_PRODUCT_DISCOUNT)))
+                                    .withPricing(
+                                            cursor.getDouble(cursor.getColumnIndex(DatabaseHelper.COLUMN_PRODUCT_COST)),
+                                            cursor.getDouble(cursor.getColumnIndex(DatabaseHelper.COLUMN_PRODUCT_PRICE))
+                                    )
+                                    .withQuantity(cursor.getInt(cursor.getColumnIndex(DatabaseHelper.COLUMN_PRODUCT_QUANTITY)))
+                                    .withImage(cursor.getString(cursor.getColumnIndex(DatabaseHelper.COLUMN_PRODUCT_IMAGE)))
+                                    .buildProduct();
+                            cursor.close();
+                            emitter.onSuccess(product);
+                        }
+                    } catch (Exception e) {
+                        emitter.onError(e);
+                    }
+                }
+        );
     }
 
     @SuppressLint("Range")

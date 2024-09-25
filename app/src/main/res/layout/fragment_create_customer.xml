@@ -5,7 +5,7 @@
     android:layout_height="wrap_content"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical"
-    tools:context=".ui.customers.create_customer.CreateCustomerFragment">
+    tools:context=".features.customers.create_customer.CreateCustomerFragment">
 
     <LinearLayout
         android:id="@+id/linearLayout"

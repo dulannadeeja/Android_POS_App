@@ -8,8 +8,11 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import io.reactivex.rxjava3.core.Single;
+
 public class ProductRepository implements IProductRepository {
 
+    private static final String TAG = "ProductRepository";
     private final IProductDao productDao;
 
     public ProductRepository(IProductDao productDao) {
@@ -21,7 +24,7 @@ public class ProductRepository implements IProductRepository {
         try{
             productDao.createProduct(product);
         } catch (Exception e) {
-            Log.e("ProductRepository", "Error creating product", e);
+            Log.e(TAG, "Error creating product", e);
         }
     }
 
@@ -30,7 +33,7 @@ public class ProductRepository implements IProductRepository {
         try{
             productDao.updateProduct(product);
         } catch (Exception e) {
-            Log.e("ProductRepository", "Error updating product", e);
+            Log.e(TAG, "Error updating product", e);
         }
     }
 
@@ -44,19 +47,14 @@ public class ProductRepository implements IProductRepository {
         try {
             return productDao.getAllProducts();
         } catch (Exception e) {
-            Log.e("ProductRepository", "Error getting all products", e);
+            Log.e(TAG, "Error getting all products", e);
             return new ArrayList<>();
         }
     }
 
     @Override
-    public Product getProductById(int productId) {
-        try {
-            return productDao.getProductById(productId);
-        } catch (Exception e) {
-            Log.e("ProductRepository", "Error getting product by id", e);
-            return null;
-        }
+    public Single<Product> getProductById(int productId) {
+        return productDao.getProductById(productId);
     }
 
     @Override
@@ -64,7 +62,7 @@ public class ProductRepository implements IProductRepository {
         try {
             return productDao.filterProducts(keyword);
         } catch (Exception e) {
-            Log.e("ProductRepository", "Error getting filtered products", e);
+            Log.e(TAG, "Error getting filtered products", e);
             return new ArrayList<>();
         }
     }

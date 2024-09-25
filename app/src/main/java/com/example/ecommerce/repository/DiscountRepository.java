@@ -47,7 +47,6 @@ public class DiscountRepository implements IDiscountRepository {
             editor.putString("discountType", discount.getDiscountType());
             editor.putFloat("discountValue", (float) discount.getDiscountValue());
             editor.apply();
-            Log.d("DiscountRepository", "saveCurrentDiscount: discountId: " + discount.getDiscountId() + ", discountType: " + discount.getDiscountType() + ", discountValue: " + discount.getDiscountValue());
         } catch (Exception e) {
             throw new RuntimeException("Error saving current discount", e);
         }
@@ -64,8 +63,6 @@ public class DiscountRepository implements IDiscountRepository {
             int discountId = discountSharedPreferences.getInt("discountId", -1);
             String discountType = discountSharedPreferences.getString("discountType", "");
             double discountValue = discountSharedPreferences.getFloat("discountValue", 0);
-
-            Log.d("DiscountRepository", "getCurrentDiscountHandler: discountId: " + discountId + ", discountType: " + discountType + ", discountValue: " + discountValue);
 
             // Build and return the Discount object
             return new Discount.DiscountBuilder()
@@ -99,6 +96,13 @@ public class DiscountRepository implements IDiscountRepository {
         return getCurrentDiscountHandler()
                 .flatMap(discount -> {
                     Map<String, Object> result = new HashMap<>();
+
+                    if(totalAmount == 0) {
+                        result.put("discountAmount", 0);
+                        result.put("discountId", -1);
+                        return Single.just(result);
+                    }
+
                     double discountAmount;
                     switch (discount.getDiscountType()) {
                         case "percentage":

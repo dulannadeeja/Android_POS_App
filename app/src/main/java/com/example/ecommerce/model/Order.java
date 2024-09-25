@@ -1,5 +1,8 @@
 package com.example.ecommerce.model;
 
+import java.util.ArrayList;
+import java.util.Map;
+
 public class Order {
     private final int _orderId;
     private final String orderDate;
@@ -12,6 +15,7 @@ public class Order {
     private final double dueAmount;
     private final int customerId;
     private final String orderStatus;
+    private final ArrayList<OrderItem> orderItems;
 
     private Order(OrderBuilder builder) {
         this._orderId = builder._orderId;
@@ -25,6 +29,7 @@ public class Order {
         this.dueAmount = builder.dueAmount;
         this.customerId = builder.customerId;
         this.orderStatus = builder.orderStatus;
+        this.orderItems = builder.orderItems;
     }
 
     public static class OrderBuilder {
@@ -39,6 +44,7 @@ public class Order {
         private double dueAmount;
         private int customerId;
         private String orderStatus;
+        private ArrayList<OrderItem> orderItems;
 
         public OrderBuilder(String orderDate, double orderTotal, String orderStatus, double taxAndCharges, double subTotal) {
             this.orderDate = orderDate;
@@ -67,6 +73,11 @@ public class Order {
 
         public OrderBuilder withCustomerId(int customerId) {
             this.customerId = customerId;
+            return this;
+        }
+
+        public OrderBuilder withOrderItems(ArrayList<OrderItem> orderItems) {
+            this.orderItems = orderItems;
             return this;
         }
 
@@ -118,5 +129,9 @@ public class Order {
 
     public String getOrderStatus() {
         return orderStatus;
+    }
+
+    public ArrayList<OrderItem> getOrderItems() {
+        return orderItems;
     }
 }

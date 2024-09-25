@@ -5,19 +5,15 @@ import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.bumptech.glide.Glide;
 import com.example.ecommerce.R;
 import com.example.ecommerce.model.CartItem;
-import com.example.ecommerce.model.Product;
-import com.example.ecommerce.ui.cart.OnCartItemClickListener;
-import com.example.ecommerce.ui.products.OnItemClickListener;
+import com.example.ecommerce.features.cart.OnCartItemClickListener;
 import com.google.android.material.button.MaterialButton;
 
 import java.util.ArrayList;

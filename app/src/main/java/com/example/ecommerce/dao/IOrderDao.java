@@ -5,13 +5,13 @@ import com.example.ecommerce.model.OrderItem;
 
 import java.util.ArrayList;
 
+import io.reactivex.rxjava3.core.Single;
+
 public interface IOrderDao {
-    long createOrder(Order order);
-    Order getOrderById(int orderId);
-    void createOrderItem(OrderItem orderItem);
-    OrderItem getOrderItemById(int orderItemId);
-    void updateOrderPayment(int orderId, double paidAmount, double dueAmount, String orderStatus);
-    ArrayList<Order> filterOrdersByStatus(String status);
-    ArrayList<OrderItem> getOrderItems(int orderId);
-    ArrayList<Order> getOrdersByCustomer(int customerId);
+    Single<Integer> createOrder(Order order);
+    Single<Order> getOrderById(int orderId);
+    Single<OrderItem> getOrderItemById(int orderItemId);
+    Single<ArrayList<Order>> filterOrdersByStatus(String status);
+    Single<ArrayList<OrderItem>> getOrderItems(int orderId);
+    Single<ArrayList<Order>> getOrdersByCustomer(int customerId);
 }

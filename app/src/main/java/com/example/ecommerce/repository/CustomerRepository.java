@@ -94,23 +94,24 @@ public class CustomerRepository implements ICustomerRepository {
         }
     }
 
+    // TODO: Implement getCustomerOutstandingBalanceHandler
     @Override
     public double getCustomerOutstandingBalanceHandler(int customerId) {
         try {
-            Customer customer = customerDao.getCustomerById(customerId);
-            if (customer == null || customer.getCustomerId() == 0) {
-                throw new RuntimeException("Customer not found");
-            }
-
-            ArrayList<Order> orders = orderDao.getOrdersByCustomer(customerId);
+//            Customer customer = customerDao.getCustomerById(customerId);
+//            if (customer == null || customer.getCustomerId() == 0) {
+//                throw new RuntimeException("Customer not found");
+//            }
+//
+//            ArrayList<Order> orders = orderDao.getOrdersByCustomer(customerId);
             AtomicReference<Double> totalOutstandingBalance = new AtomicReference<>(0.0);
-            if(orders != null && orders.size() > 0) {
-                orders.forEach(order -> {
-                    if (order.getDueAmount() > 0) {
-                        totalOutstandingBalance.updateAndGet(v -> new Double((double) (v + order.getDueAmount())));
-                    }
-                });
-            }
+//            if(orders != null && orders.size() > 0) {
+//                orders.forEach(order -> {
+//                    if (order.getDueAmount() > 0) {
+//                        totalOutstandingBalance.updateAndGet(v -> new Double((double) (v + order.getDueAmount())));
+//                    }
+//                });
+//            }
             return totalOutstandingBalance.get();
         } catch (Exception e) {
             throw new RuntimeException("Error getting current outstanding balance", e);

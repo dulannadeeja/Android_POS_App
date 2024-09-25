@@ -42,18 +42,13 @@ public class CartRepository implements ICartRepository {
 
                     // Retrieve cart from shared preferences and build a new cart with updated values
                     return getCartFromSharedPreferences()
-                            .map(cart -> {
-                                        Cart updatedCart = new Cart.CartBuilder()
-                                                .withCartSubTotalPrice(cartSubTotalPrice)
-                                                .withCartTotalTaxAndCharges(cartTotalTaxAndCharges)
-                                                .withOrderId(cart.getOrderId())
-                                                .withDiscount(cart.getDiscountId(), cart.getDiscountValue())
-                                                .withCartItems(cartItems)
-                                                .build();
-                                        Log.d("CartRepository", "Cart Discount: " + updatedCart.getDiscountId() + " " + updatedCart.getDiscountValue());
-                                        return updatedCart;
-                                    }
-                            );
+                            .map(cart -> new Cart.CartBuilder()
+                                    .withCartSubTotalPrice(cartSubTotalPrice)
+                                    .withCartTotalTaxAndCharges(cartTotalTaxAndCharges)
+                                    .withOrderId(cart.getOrderId())
+                                    .withDiscount(cart.getDiscountId(), cart.getDiscountValue())
+                                    .withCartItems(cartItems)
+                                    .build());
                 });
     }
 
@@ -74,35 +69,28 @@ public class CartRepository implements ICartRepository {
 
     @Override
     public Completable addProductToCart(int productId) {
-        Log.d("CartRepository", "Adding product to cart: " + productId);
         return isProductInCart(productId)
                 .flatMapCompletable(isProductInCart -> {
                     // If the product is in the cart, check stock and update quantity
                     if (isProductInCart) {
-                        Log.d("CartRepository", "Product already in cart: " + productId);
                         return cartDao.getCartItem(productId)
                                 .flatMapCompletable(cartItem -> {
                                     return isProductHasStock(cartItem.getQuantity(), productId)
                                             .flatMapCompletable(isProductHasStock -> {
                                                 if (isProductHasStock) {
-                                                    Log.d("CartRepository", "Product has stock: " + productId);
                                                     return cartDao.updateCartItem(productId, cartItem.getQuantity() + 1);
                                                 } else {
-                                                    Log.d("CartRepository", "Product out of stock: " + productId);
                                                     return Completable.error(new Exception("Product out of stock"));
                                                 }
                                             });
                                 });
                     } else {
-                        Log.d("CartRepository", "Product not in cart: " + productId);
                         // If the product is not in the cart, add it
                         return isProductHasStock(1, productId)
                                 .flatMapCompletable(isProductHasStock -> {
                                     if (isProductHasStock) {
-                                        Log.d("CartRepository", "Product has stock: " + productId);
                                         return cartDao.createCartItem(productId);
                                     } else {
-                                        Log.d("CartRepository", "Product out of stock: " + productId);
                                         return Completable.error(new Exception("Product out of stock"));
                                     }
                                 });
@@ -136,7 +124,6 @@ public class CartRepository implements ICartRepository {
 
     @Override
     public Completable applyDiscountToCart(int discountId, double discountValue) {
-        Log.d("CartRepository", "Applying discount to cart: " + discountId + " " + discountValue);
         return getCartHandler()
                 .flatMapCompletable(cart -> {
                     Cart updatedCart = new Cart.CartBuilder()

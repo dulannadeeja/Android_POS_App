@@ -13,7 +13,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.example.ecommerce.R;
 import com.example.ecommerce.model.Product;
-import com.example.ecommerce.ui.products.OnItemClickListener;
+import com.example.ecommerce.features.products.OnItemClickListener;
 
 import java.util.ArrayList;
 import java.util.HashMap;

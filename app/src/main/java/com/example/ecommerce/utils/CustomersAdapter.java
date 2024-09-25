@@ -12,7 +12,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.ecommerce.R;
 import com.example.ecommerce.model.Customer;
-import com.example.ecommerce.ui.customers.OnCustomerClickListener;
+import com.example.ecommerce.features.customers.OnCustomerClickListener;
 
 import java.util.ArrayList;
 

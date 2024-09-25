@@ -18,6 +18,7 @@ import com.example.ecommerce.dao.IProductDao;
 import com.example.ecommerce.dao.OrderDao;
 import com.example.ecommerce.dao.PaymentDao;
 import com.example.ecommerce.dao.ProductDao;
+import com.example.ecommerce.features.order.OrderViewModelFactory;
 import com.example.ecommerce.repository.CartRepository;
 import com.example.ecommerce.repository.CustomerRepository;
 import com.example.ecommerce.repository.DiscountRepository;
@@ -30,60 +31,27 @@ import com.example.ecommerce.repository.IProductRepository;
 import com.example.ecommerce.repository.OrderRepository;
 import com.example.ecommerce.repository.PaymentRepository;
 import com.example.ecommerce.repository.ProductRepository;
-import com.example.ecommerce.ui.cart.CartViewModelFactory;
-import com.example.ecommerce.ui.checkout.CheckoutViewModelFactory;
-import com.example.ecommerce.ui.customers.CustomerViewModelFactory;
-import com.example.ecommerce.ui.customers.create_customer.CreateCustomerViewModelFactory;
-import com.example.ecommerce.ui.discount.DiscountViewModelFactory;
-import com.example.ecommerce.ui.products.ProductsViewModelFactory;
+import com.example.ecommerce.features.cart.CartViewModelFactory;
+import com.example.ecommerce.features.checkout.CheckoutViewModelFactory;
+import com.example.ecommerce.features.customers.CustomerViewModelFactory;
+import com.example.ecommerce.features.customers.create_customer.CreateCustomerViewModelFactory;
+import com.example.ecommerce.features.discount.DiscountViewModelFactory;
+import com.example.ecommerce.features.products.ProductsViewModelFactory;
 import com.example.ecommerce.utils.DatabaseHelper;
-
-import kotlin.jvm.Synchronized;
 
 interface IAppModule {
     Context provideAppContext();
-
     DatabaseHelper provideDatabaseHelper();
-
-    IProductDao provideProductDao();
-
     IProductRepository provideProductRepository();
-
     ProductsViewModelFactory provideProductsViewModelFactory();
-
-    ICartDao provideCartDao();
-
-    ICartRepository provideCartRepository();
-
     CartViewModelFactory provideCartViewModelFactory();
-
-    IDiscountDao provideDiscountDao();
-
-    IDiscountRepository provideDiscountRepository();
-
     DiscountViewModelFactory provideDiscountViewModelFactory();
-
-    IPaymentDao providePaymentDao();
-
-    IPaymentRepository providePaymentRepository();
-
-    IOrderDao provideOrderDao();
-
     IOrderRepository provideOrderRepository();
-
     CheckoutViewModelFactory provideCheckoutViewModelFactory();
-
-    ICustomerDao provideCustomerDao();
-
     ICustomerRepository provideCustomerRepository();
-
     CreateCustomerViewModelFactory provideCreateCustomerViewModelFactory();
-
-    SharedPreferences provideCustomerSharedPreferences();
-
-    SharedPreferences provideDiscountSharedPreferences();
-
     CustomerViewModelFactory provideCustomerViewModelFactory();
+    OrderViewModelFactory provideOrderViewModelFactory();
 }
 
 public class AppModule implements IAppModule {
@@ -111,6 +79,7 @@ public class AppModule implements IAppModule {
     private final SharedPreferences discountSharedPreferences;
     private final SharedPreferences cartSharedPreferences;
     private final CustomerViewModelFactory customerViewModelFactory;
+    private final OrderViewModelFactory orderViewModelFactory;
 
     public AppModule(Context appContext) {
         this.appContext = appContext;
@@ -134,19 +103,15 @@ public class AppModule implements IAppModule {
         customerRepository = new CustomerRepository(customerDao, customerSharedPreferences, orderDao);
         productsViewModelFactory = new ProductsViewModelFactory(productRepository, customerRepository);
         createCustomerViewModelFactory = new CreateCustomerViewModelFactory(customerRepository);
-        cartViewModelFactory = new CartViewModelFactory(cartRepository, discountRepository,orderRepository);
+        cartViewModelFactory = new CartViewModelFactory(cartRepository, discountRepository);
         checkoutViewModelFactory = new CheckoutViewModelFactory(cartRepository, paymentRepository, orderRepository);
         customerViewModelFactory = new CustomerViewModelFactory(application,customerRepository);
+        orderViewModelFactory = new OrderViewModelFactory(orderRepository);
     }
 
     @Override
     public DatabaseHelper provideDatabaseHelper() {
         return databaseHelper;
-    }
-
-    @Override
-    public IProductDao provideProductDao() {
-        return productDao;
     }
 
     @Override
@@ -160,48 +125,13 @@ public class AppModule implements IAppModule {
     }
 
     @Override
-    public ICartDao provideCartDao() {
-        return cartDao;
-    }
-
-    @Override
-    public ICartRepository provideCartRepository() {
-        return cartRepository;
-    }
-
-    @Override
     public CartViewModelFactory provideCartViewModelFactory() {
         return cartViewModelFactory;
     }
 
     @Override
-    public IDiscountDao provideDiscountDao() {
-        return discountDao;
-    }
-
-    @Override
-    public IDiscountRepository provideDiscountRepository() {
-        return discountRepository;
-    }
-
-    @Override
     public DiscountViewModelFactory provideDiscountViewModelFactory() {
         return discountViewModelFactory;
-    }
-
-    @Override
-    public IPaymentDao providePaymentDao() {
-        return this.paymentDao;
-    }
-
-    @Override
-    public IPaymentRepository providePaymentRepository() {
-        return this.paymentRepository;
-    }
-
-    @Override
-    public IOrderDao provideOrderDao() {
-        return this.orderDao;
     }
 
     @Override
@@ -215,11 +145,6 @@ public class AppModule implements IAppModule {
     }
 
     @Override
-    public ICustomerDao provideCustomerDao() {
-        return this.customerDao;
-    }
-
-    @Override
     public ICustomerRepository provideCustomerRepository() {
         return this.customerRepository;
     }
@@ -230,16 +155,6 @@ public class AppModule implements IAppModule {
     }
 
     @Override
-    public SharedPreferences provideCustomerSharedPreferences() {
-        return customerSharedPreferences;
-    }
-
-    @Override
-    public SharedPreferences provideDiscountSharedPreferences() {
-        return discountSharedPreferences;
-    }
-
-    @Override
     public CustomerViewModelFactory provideCustomerViewModelFactory() {
         return customerViewModelFactory;
     }
@@ -247,6 +162,11 @@ public class AppModule implements IAppModule {
     @Override
     public Context provideAppContext() {
         return appContext;
+    }
+
+    @Override
+    public OrderViewModelFactory provideOrderViewModelFactory() {
+        return orderViewModelFactory;
     }
 
 }

@@ -19,20 +19,24 @@ import androidx.fragment.app.FragmentTransaction;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.example.ecommerce.databinding.ActivityMainBinding;
-import com.example.ecommerce.ui.cart.CartFragment;
-import com.example.ecommerce.ui.cart.CartViewModel;
-import com.example.ecommerce.ui.cart.OnSavedPendingOrderCallback;
-import com.example.ecommerce.ui.checkout.CheckoutFragment;
-import com.example.ecommerce.ui.create_product.CreateProductFragment;
-import com.example.ecommerce.ui.customers.CustomerViewModel;
-import com.example.ecommerce.ui.customers.CustomersFragment;
-import com.example.ecommerce.ui.customers.OnCurrentCustomerChangedCallback;
-import com.example.ecommerce.ui.customers.customer_profile.CustomerProfileFragment;
-import com.example.ecommerce.ui.discount.DiscountPopupFragment;
-import com.example.ecommerce.ui.discount.DiscountViewModel;
-import com.example.ecommerce.ui.open_orders.OpenOrdersFragment;
-import com.example.ecommerce.ui.products.ProductsFragment;
+import com.example.ecommerce.features.cart.CartFragment;
+import com.example.ecommerce.features.cart.CartViewModel;
+import com.example.ecommerce.features.cart.OnSavedPendingOrderCallback;
+import com.example.ecommerce.features.checkout.CheckoutFragment;
+import com.example.ecommerce.features.create_product.CreateProductFragment;
+import com.example.ecommerce.features.customers.CustomerViewModel;
+import com.example.ecommerce.features.customers.CustomersFragment;
+import com.example.ecommerce.features.customers.customer_profile.CustomerProfileFragment;
+import com.example.ecommerce.features.discount.DiscountPopupFragment;
+import com.example.ecommerce.features.discount.DiscountViewModel;
+import com.example.ecommerce.features.open_orders.OpenOrdersFragment;
+import com.example.ecommerce.features.order.OrderViewModel;
+import com.example.ecommerce.features.products.ProductsFragment;
+import com.example.ecommerce.model.Cart;
+import com.example.ecommerce.model.Customer;
+import com.example.ecommerce.model.Discount;
 import com.example.ecommerce.utils.DatabaseHelper;
+import com.example.ecommerce.utils.OnCompletableFinishedCallback;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.database.DatabaseReference;
@@ -44,6 +48,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private CustomerViewModel customerViewModel;
     private CartViewModel cartViewModel;
     private DiscountViewModel discountViewModel;
+    private OrderViewModel orderViewModel;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,8 +66,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         // Initialize the view model
         customerViewModel = new ViewModelProvider(this, App.appModule.provideCustomerViewModelFactory()).get(CustomerViewModel.class);
-        cartViewModel = new ViewModelProvider(this, App.appModule.provideCartViewModelFactory()).get(CartViewModel.class);
         discountViewModel = new ViewModelProvider(this, App.appModule.provideDiscountViewModelFactory()).get(DiscountViewModel.class);
+        cartViewModel = new ViewModelProvider(this, App.appModule.provideCartViewModelFactory()).get(CartViewModel.class);
+        orderViewModel = new ViewModelProvider(this, App.appModule.provideOrderViewModelFactory()).get(OrderViewModel.class);
 
         // Load the current customer
         customerViewModel.onLoadCurrentCustomer();
@@ -103,19 +109,19 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         });
 
         toolbar.findViewById(R.id.go_to_cart).setOnClickListener(v -> {
-            loadFragment(new CartFragment());
+            loadFragment(new CartFragment(),true);
         });
 
         // by clicking outside the drawer it will close
         drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
 
         binding.chargeButton.setOnClickListener(v -> {
-            loadFragment(new CheckoutFragment());
+            loadFragment(new CheckoutFragment(), true);
         });
 
         // ------------------------------------ Load the default fragment ------------------------------------
         if (savedInstanceState == null) {
-            loadFragment(new ProductsFragment());
+            loadFragment(new ProductsFragment(), false);
         }
 
         // ------------------------------------ Database usage ------------------------------------
@@ -166,20 +172,18 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 binding.chargeButton.setText("CHARGE " + cart.getCartTotalPrice());
                 binding.saveOrderButton.setText("SAVE");
                 binding.saveOrderButton.setOnClickListener(v -> {
-                    cartViewModel.onSavePendingOrder(new OnSavedPendingOrderCallback() {
-                        @Override
-                        public void onSuccessfulOrderSaved() {
-                            Toast.makeText(MainActivity.this, "Order saved successfully", Toast.LENGTH_SHORT).show();
-                            cartViewModel.onClearCart();
-                            customerViewModel.onClearCurrentCustomer();
-                            customerViewModel.onClearCustomer();
-                        }
-
-                        @Override
-                        public void onFailedOrderSaved(String message) {
-                            Toast.makeText(MainActivity.this, "Failed to save order: " + message, Toast.LENGTH_SHORT).show();
-                        }
-                    });
+                    Cart cartToSave = cartViewModel.getCart().getValue();
+                    Customer customer = customerViewModel.getCustomer().getValue();
+                    orderViewModel.onSavePendingOrder(cartToSave, customer,
+                            ((isSuccess, message) -> {
+                                if (isSuccess) {
+                                    Toast.makeText(this, "Order saved successfully", Toast.LENGTH_SHORT).show();
+                                    cartViewModel.onClearCart();
+                                } else {
+                                    Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
+                                }
+                            })
+                    );
                 });
             }
         });
@@ -203,20 +207,31 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     }
 
-    public void loadFragment(Fragment fragment) {
+    public void loadFragment(Fragment fragment, Boolean addToBackStack) {
         // Load the fragment
         FragmentManager fragmentManager = getSupportFragmentManager();
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
         fragmentTransaction.replace(R.id.fragment_container, fragment);
+        if(addToBackStack) {
+            String name = fragment.getClass().getName();
+            fragmentTransaction.addToBackStack(name);
+        }
         fragmentTransaction.commit();
 
         // Set the active drawer item
         setActiveDrawerItem(fragment);
     }
 
+    public void clearBackStack() {
+        getSupportFragmentManager().popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
+    }
+
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
         Fragment fragment = null;
+
+        // clear the back stack
+        clearBackStack();
 
         if (item.getItemId() == R.id.drawer_products) {
             fragment = new ProductsFragment();
@@ -225,7 +240,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
 
         if (fragment != null) {
-            loadFragment(fragment);
+            loadFragment(fragment, false);
         }
 
         drawerLayout.closeDrawer(GravityCompat.START);

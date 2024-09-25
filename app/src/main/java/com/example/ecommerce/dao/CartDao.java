@@ -41,7 +41,7 @@ public class CartDao implements ICartDao {
 
             SQLiteDatabase db = databaseHelper.getReadableDatabase();
             Cursor cursor = db.rawQuery(query, null);
-            try  {
+            try {
 
                 // Iterate over the cursor to fetch cart items
                 while (cursor.moveToNext()) {
@@ -53,7 +53,14 @@ public class CartDao implements ICartDao {
                     String productName = cursor.getString(cursor.getColumnIndex(DatabaseHelper.COLUMN_PRODUCT_NAME));
 
                     // Add each cart item to the list
-                    CartItem cartItem = new CartItem(cartItemId, productId, quantity, price, discount, productName);
+                    CartItem cartItem = new CartItem.Builder(productId)
+                            .withCartItemId(cartItemId)
+                            .withQuantity(quantity)
+                            .withPrice(price)
+                            .withDiscount(discount)
+                            .withProductName(productName)
+                            .build();
+
                     cartItems.add(cartItem);
                 }
             } catch (Exception e) {
@@ -69,11 +76,10 @@ public class CartDao implements ICartDao {
     @Override
     public Completable createCartItem(int productId) {
         return Completable.fromAction(() -> {
-            try (SQLiteDatabase db = databaseHelper.getWritableDatabase()) {
-                Log.d("CartDao", "Creating cart item for product: " + productId);
+            try {
+                SQLiteDatabase db = databaseHelper.getWritableDatabase();
                 db.execSQL("INSERT INTO " + DatabaseHelper.TABLE_CART_ITEMS + " (" + DatabaseHelper.COLUMN_PRODUCT_ID + ", " + DatabaseHelper.COLUMN_QUANTITY + ") VALUES (" + productId + ", 1)");
             } catch (Exception e) {
-                Log.e("CartDao", "Error creating cart item", e);
                 throw new RuntimeException("Error creating cart item", e);
             }
         });
@@ -81,8 +87,9 @@ public class CartDao implements ICartDao {
 
     @Override
     public Completable deleteCartItem(int productId) {
-        return Completable.fromAction(()->{
-            try (SQLiteDatabase db = databaseHelper.getWritableDatabase()) {
+        return Completable.fromAction(() -> {
+            try {
+                SQLiteDatabase db = databaseHelper.getWritableDatabase();
                 db.execSQL("DELETE FROM " + DatabaseHelper.TABLE_CART_ITEMS + " WHERE " + DatabaseHelper.COLUMN_PRODUCT_ID + " = " + productId);
             } catch (Exception e) {
                 throw new RuntimeException("Error deleting cart item", e);
@@ -91,9 +98,10 @@ public class CartDao implements ICartDao {
     }
 
     @Override
-    public Completable updateCartItem(int productId, int quantity){
+    public Completable updateCartItem(int productId, int quantity) {
         return Completable.fromAction(() -> {
-            try (SQLiteDatabase db = databaseHelper.getWritableDatabase()) {
+            try {
+                SQLiteDatabase db = databaseHelper.getWritableDatabase();
                 db.execSQL("UPDATE " + DatabaseHelper.TABLE_CART_ITEMS + " SET " + DatabaseHelper.COLUMN_QUANTITY + " = " + quantity + " WHERE " + DatabaseHelper.COLUMN_PRODUCT_ID + " = " + productId);
             } catch (Exception e) {
                 throw new RuntimeException("Error updating cart item", e);
@@ -104,7 +112,8 @@ public class CartDao implements ICartDao {
     @Override
     public Completable clearCart() {
         return Completable.fromAction(() -> {
-            try (SQLiteDatabase db = databaseHelper.getWritableDatabase()) {
+            try {
+                SQLiteDatabase db = databaseHelper.getWritableDatabase();
                 db.execSQL("DELETE FROM " + DatabaseHelper.TABLE_CART_ITEMS);
             } catch (Exception e) {
                 throw new RuntimeException("Error clearing cart", e);
@@ -114,9 +123,10 @@ public class CartDao implements ICartDao {
 
     @Override
     @SuppressLint("Range")
-    public Maybe<CartItem> getCartItem(int productId){
+    public Maybe<CartItem> getCartItem(int productId) {
         return Maybe.create(emitter -> {
-            try (SQLiteDatabase db = databaseHelper.getReadableDatabase()) {
+            try {
+                SQLiteDatabase db = databaseHelper.getReadableDatabase();
                 Cursor cursor = db.rawQuery("SELECT * FROM " + DatabaseHelper.TABLE_CART_ITEMS + " WHERE " + DatabaseHelper.COLUMN_PRODUCT_ID + " = " + productId, null);
                 if (cursor.moveToFirst()) {
                     int _cartItemId = cursor.getInt(cursor.getColumnIndex(DatabaseHelper.COLUMN_CART_ITEM_ID));
@@ -128,7 +138,13 @@ public class CartDao implements ICartDao {
                     double discount = productCursor.getDouble(productCursor.getColumnIndex(DatabaseHelper.COLUMN_PRODUCT_DISCOUNT));
                     String productName = productCursor.getString(productCursor.getColumnIndex(DatabaseHelper.COLUMN_PRODUCT_NAME));
                     productCursor.close();
-                    CartItem cartItem = new CartItem(_cartItemId, productId, quantity, price, discount, productName);
+                    CartItem cartItem = new CartItem.Builder(productId)
+                            .withCartItemId(_cartItemId)
+                            .withQuantity(quantity)
+                            .withPrice(price)
+                            .withDiscount(discount)
+                            .withProductName(productName)
+                            .build();
                     emitter.onSuccess(cartItem);
                 } else {
                     emitter.onComplete();

@@ -15,8 +15,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.ecommerce.R;
 import com.example.ecommerce.model.OpenOrderItem;
 import com.example.ecommerce.model.Order;
-import com.example.ecommerce.model.Product;
-import com.example.ecommerce.ui.open_orders.OnOpenOrderClickListener;
+import com.example.ecommerce.features.open_orders.OnOpenOrderClickListener;
 import com.google.android.material.divider.MaterialDivider;
 
 
@@ -135,7 +134,6 @@ public class OpenOrdersAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
         this.openOrderItems.clear();
         if (openOrderItems != null && !openOrderItems.isEmpty()) {
             this.openOrderItems.addAll(openOrderItems);
-            Log.d("OpenOrdersAdapter", "setOpenOrderItems: " + this.openOrderItems.size());
         }
         notifyDataSetChanged();
     }
