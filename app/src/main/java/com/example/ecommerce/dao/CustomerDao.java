@@ -24,7 +24,8 @@ public class CustomerDao implements ICustomerDao {
 
     @Override
     public int createCustomer(Customer customer) {
-        try (SQLiteDatabase db = databaseHelper.getWritableDatabase()) {
+        try {
+            SQLiteDatabase db = databaseHelper.getWritableDatabase();
             ContentValues values = new ContentValues();
             values.put(DatabaseHelper.COLUMN_CUSTOMER_FIRST_NAME, customer.getFirstName());
             values.put(DatabaseHelper.COLUMN_CUSTOMER_LAST_NAME, customer.getLastName());
@@ -44,7 +45,8 @@ public class CustomerDao implements ICustomerDao {
     @SuppressLint("Range")
     @Override
     public Customer getCustomerById(int customerId) {
-        try (SQLiteDatabase db = databaseHelper.getReadableDatabase()) {
+        try {
+            SQLiteDatabase db = databaseHelper.getReadableDatabase();
             String query = "SELECT * FROM " + DatabaseHelper.TABLE_CUSTOMERS + " WHERE " + DatabaseHelper.COLUMN_CUSTOMER_ID + " = ?";
             String[] selectionArgs = {String.valueOf(customerId)};
             Cursor cursor = db.rawQuery(query, selectionArgs);
@@ -72,8 +74,9 @@ public class CustomerDao implements ICustomerDao {
     @SuppressLint("Range")
     public Single<ArrayList<Customer>> getAllCustomers() {
         return Single.<ArrayList<Customer>>create(emitter -> {
-                    try (SQLiteDatabase db = databaseHelper.getReadableDatabase();
-                         Cursor cursor = db.rawQuery("SELECT * FROM " + DatabaseHelper.TABLE_CUSTOMERS + " ORDER BY " + DatabaseHelper.COLUMN_CUSTOMER_ID + " DESC", null)) {
+                    try {
+                        SQLiteDatabase db = databaseHelper.getReadableDatabase();
+                        Cursor cursor = db.rawQuery("SELECT * FROM " + DatabaseHelper.TABLE_CUSTOMERS + " ORDER BY " + DatabaseHelper.COLUMN_CUSTOMER_ID + " DESC", null);
 
                         ArrayList<Customer> customers = new ArrayList<>();
 
@@ -96,6 +99,7 @@ public class CustomerDao implements ICustomerDao {
 
                         // Emit the list of customers
                         emitter.onSuccess(customers);
+                        cursor.close();
                     } catch (SQLiteException e) {
                         emitter.onError(e);
                     }
@@ -106,7 +110,8 @@ public class CustomerDao implements ICustomerDao {
 
     @Override
     public void updateCustomer(Customer customer) {
-        try(SQLiteDatabase db = databaseHelper.getWritableDatabase()) {
+        try {
+            SQLiteDatabase db = databaseHelper.getWritableDatabase();
             ContentValues values = new ContentValues();
             values.put(DatabaseHelper.COLUMN_CUSTOMER_FIRST_NAME, customer.getFirstName());
             values.put(DatabaseHelper.COLUMN_CUSTOMER_LAST_NAME, customer.getLastName());

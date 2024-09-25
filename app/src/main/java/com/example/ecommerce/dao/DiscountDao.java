@@ -26,7 +26,8 @@ public class DiscountDao implements IDiscountDao {
 
     @Override
     public int createDiscount(Discount discount) throws Exception {
-        try (SQLiteDatabase db = databaseHelper.getWritableDatabase()) {
+        try {
+            SQLiteDatabase db = databaseHelper.getWritableDatabase();
             String query = "INSERT INTO " + DatabaseHelper.TABLE_DISCOUNTS + " (" +
                     DatabaseHelper.COLUMN_DISCOUNT_TYPE + ", " +
                     DatabaseHelper.COLUMN_DISCOUNT_VALUE + ") " +
@@ -45,7 +46,8 @@ public class DiscountDao implements IDiscountDao {
     @SuppressLint("Range")
     @Override
     public Discount getDiscount(int discountId) throws Exception {
-        try (SQLiteDatabase db = databaseHelper.getReadableDatabase()) {
+        try {
+            SQLiteDatabase db = databaseHelper.getReadableDatabase();
             String query = "SELECT * FROM " + DatabaseHelper.TABLE_DISCOUNTS + " WHERE " + DatabaseHelper.COLUMN_DISCOUNT_ID + " = " + discountId;
             Cursor cursor = db.rawQuery(query, null);
             if (cursor.getCount() == 0) {
@@ -73,7 +75,8 @@ public class DiscountDao implements IDiscountDao {
     @Override
     @SuppressLint("Range")
     public Discount isExistingDiscount(String discountType, double discountValue) throws Exception {
-        try (SQLiteDatabase db = databaseHelper.getReadableDatabase()) {
+        try {
+            SQLiteDatabase db = databaseHelper.getReadableDatabase();
             String query = "SELECT * FROM " + DatabaseHelper.TABLE_DISCOUNTS + " WHERE " + DatabaseHelper.COLUMN_DISCOUNT_TYPE + " = ? AND " + DatabaseHelper.COLUMN_DISCOUNT_VALUE + " = ?";
             Cursor cursor = db.rawQuery(query, new String[]{discountType, String.valueOf(discountValue)});
             if (cursor.getCount() == 0) {

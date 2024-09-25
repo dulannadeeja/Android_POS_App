@@ -18,7 +18,7 @@ import java.util.ArrayList;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
 
-public class OrderDao implements IOrderDao{
+public class OrderDao implements IOrderDao {
     private DatabaseHelper databaseHelper;
 
     public OrderDao(DatabaseHelper databaseHelper) {
@@ -28,13 +28,12 @@ public class OrderDao implements IOrderDao{
     @Override
     public Single<Integer> createOrder(Order order) {
         return Single.fromCallable(() -> {
-            SQLiteDatabase database = null;
             int createdOrderId = -1;
 
             try {
 
                 // Get writable database
-                database = databaseHelper.getWritableDatabase();
+                SQLiteDatabase database = databaseHelper.getWritableDatabase();
 
                 // Begin the transaction
                 database.beginTransaction();
@@ -71,13 +70,7 @@ public class OrderDao implements IOrderDao{
                 database.setTransactionSuccessful();
             } catch (SQLiteException e) {
                 throw new RuntimeException("Error creating order and its items", e);
-            } finally {
-                // End the transaction and close the database
-                if (database != null) {
-                    database.endTransaction();
-                }
             }
-
             return createdOrderId;
         });
     }
@@ -91,7 +84,7 @@ public class OrderDao implements IOrderDao{
                     String query = "SELECT * FROM " + DatabaseHelper.TABLE_ORDERS + " WHERE " + DatabaseHelper.COLUMN_ORDER_ID + " = " + orderId;
                     Cursor cursor = database.rawQuery(query, null);
                     Order order = null;
-                    if(cursor.moveToFirst()) {
+                    if (cursor.moveToFirst()) {
                         order = new Order.OrderBuilder(
                                 cursor.getString(cursor.getColumnIndex(DatabaseHelper.COLUMN_ORDER_DATE)),
                                 cursor.getDouble(cursor.getColumnIndex(DatabaseHelper.COLUMN_ORDER_TOTAL)),
@@ -119,7 +112,7 @@ public class OrderDao implements IOrderDao{
                     String query = "SELECT * FROM " + DatabaseHelper.TABLE_ORDER_ITEMS + " WHERE " + DatabaseHelper.COLUMN_ORDER_ITEM_ID + " = " + orderItemId;
                     Cursor cursor = database.rawQuery(query, null);
                     OrderItem orderItem = null;
-                    if(cursor.moveToFirst()) {
+                    if (cursor.moveToFirst()) {
                         orderItem = new OrderItem(
                                 cursor.getInt(cursor.getColumnIndex(DatabaseHelper.COLUMN_ORDER_ID_ORDER_ITEMS)),
                                 cursor.getInt(cursor.getColumnIndex(DatabaseHelper.COLUMN_PRODUCT_ID_ORDER_ITEMS)),
@@ -142,7 +135,7 @@ public class OrderDao implements IOrderDao{
                     ArrayList<OrderItem> orderItems = new ArrayList<>();
                     String query = "SELECT * FROM " + DatabaseHelper.TABLE_ORDER_ITEMS + " WHERE " + DatabaseHelper.COLUMN_ORDER_ID_ORDER_ITEMS + " = " + orderId;
                     Cursor cursor = database.rawQuery(query, null);
-                    while(cursor.moveToNext()){
+                    while (cursor.moveToNext()) {
                         OrderItem orderItem = new OrderItem(
                                 cursor.getInt(cursor.getColumnIndex(DatabaseHelper.COLUMN_ORDER_ID_ORDER_ITEMS)),
                                 cursor.getInt(cursor.getColumnIndex(DatabaseHelper.COLUMN_PRODUCT_ID_ORDER_ITEMS)),
@@ -159,14 +152,14 @@ public class OrderDao implements IOrderDao{
 
     @Override
     @SuppressLint("Range")
-    public Single<ArrayList<Order>> filterOrdersByStatus(String status){
+    public Single<ArrayList<Order>> filterOrdersByStatus(String status) {
         return Single.create(
                 emitter -> {
                     SQLiteDatabase database = databaseHelper.getReadableDatabase();
                     ArrayList<Order> orders = new ArrayList<>();
                     String query = "SELECT * FROM " + DatabaseHelper.TABLE_ORDERS + " WHERE " + DatabaseHelper.COLUMN_ORDER_STATUS + " = '" + status + "'";
                     Cursor cursor = database.rawQuery(query, null);
-                    while(cursor.moveToNext()){
+                    while (cursor.moveToNext()) {
                         Order order = new Order.OrderBuilder(
                                 cursor.getString(cursor.getColumnIndex(DatabaseHelper.COLUMN_ORDER_DATE)),
                                 cursor.getDouble(cursor.getColumnIndex(DatabaseHelper.COLUMN_ORDER_TOTAL)),
@@ -188,14 +181,14 @@ public class OrderDao implements IOrderDao{
 
     @SuppressLint("Range")
     @Override
-    public Single<ArrayList<Order>> getOrdersByCustomer(int customerId){
+    public Single<ArrayList<Order>> getOrdersByCustomer(int customerId) {
         return Single.create(
                 emitter -> {
                     SQLiteDatabase database = databaseHelper.getReadableDatabase();
                     ArrayList<Order> orders = new ArrayList<>();
                     String query = "SELECT * FROM " + DatabaseHelper.TABLE_ORDERS + " WHERE " + DatabaseHelper.COLUMN_ORDER_CUSTOMER_ID + " = " + customerId;
                     Cursor cursor = database.rawQuery(query, null);
-                    while(cursor.moveToNext()){
+                    while (cursor.moveToNext()) {
                         Order order = new Order.OrderBuilder(
                                 cursor.getString(cursor.getColumnIndex(DatabaseHelper.COLUMN_ORDER_DATE)),
                                 cursor.getDouble(cursor.getColumnIndex(DatabaseHelper.COLUMN_ORDER_TOTAL)),
