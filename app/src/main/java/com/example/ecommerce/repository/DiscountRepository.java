@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import io.reactivex.rxjava3.core.Completable;
+import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Single;
 
 public class DiscountRepository implements IDiscountRepository {
@@ -24,38 +25,39 @@ public class DiscountRepository implements IDiscountRepository {
     }
 
     @Override
-    public int newDiscountHandler(Discount discount) throws Exception {
-        try {
-            int discountId = 0;
-            Discount existingDiscount = discountDao.isExistingDiscount(discount.getDiscountType(), discount.getDiscountValue());
-            if (existingDiscount == null) {
-                discountId = discountDao.createDiscount(discount);
-            } else {
-                discountId = existingDiscount.getDiscountId();
-            }
-            return discountId;
-        } catch (Exception e) {
-            throw new RuntimeException("Error adding new discount", e);
-        }
+    public Single<Integer> newDiscountHandler(Discount discount) {
+        return discountDao.isExistingDiscount(discount.getDiscountType(), discount.getDiscountValue())
+                .flatMapSingle(existingDiscount -> {
+                            Log.d("DiscountRepo", "Discount already exists with ID: " + existingDiscount.getDiscountId());
+                            return Single.just(existingDiscount.getDiscountId()); // If a discount exists, return its ID.
+                        }
+                )
+                .switchIfEmpty(
+                        discountDao.createDiscount(discount) // If no discount exists, create it and return the ID.
+                );
     }
 
     @Override
-    public void saveCurrentDiscount(Discount discount) throws Exception {
-        try {
-            SharedPreferences.Editor editor = discountSharedPreferences.edit();
-            editor.putInt("discountId", discount.getDiscountId());
-            editor.putString("discountType", discount.getDiscountType());
-            editor.putFloat("discountValue", (float) discount.getDiscountValue());
-            editor.apply();
-        } catch (Exception e) {
-            throw new RuntimeException("Error saving current discount", e);
-        }
+    public Completable saveCurrentDiscount(Discount discount) {
+        return Completable.fromAction(()->{
+            try {
+                Log.d("DiscountRepo", "Saving current discount: " + discount.getDiscountType() + " with value: " + discount.getDiscountValue());
+                SharedPreferences.Editor editor = discountSharedPreferences.edit();
+                editor.putInt("discountId", discount.getDiscountId());
+                editor.putString("discountType", discount.getDiscountType());
+                editor.putFloat("discountValue", (float) discount.getDiscountValue());
+                editor.apply();
+            } catch (Exception e) {
+                throw new RuntimeException("Error saving current discount", e);
+            }
+        });
     }
 
     @Override
     public Single<Discount> getCurrentDiscountHandler() {
         return Single.fromCallable(() -> {
             if (!isDiscountAvailable()) {
+                Log.d("DiscountRepo", "No discount available");
                 return new Discount.DiscountBuilder().withDiscountId(-1).withDiscountType("").withDiscountValue(0).build();
             }
 
@@ -63,6 +65,8 @@ public class DiscountRepository implements IDiscountRepository {
             int discountId = discountSharedPreferences.getInt("discountId", -1);
             String discountType = discountSharedPreferences.getString("discountType", "");
             double discountValue = discountSharedPreferences.getFloat("discountValue", 0);
+
+            Log.d("DiscountRepo", "Current discount available with ID: " + discountId);
 
             // Build and return the Discount object
             return new Discount.DiscountBuilder()
@@ -81,14 +85,16 @@ public class DiscountRepository implements IDiscountRepository {
     }
 
     @Override
-    public void clearCurrentDiscount() throws Exception {
-        try {
-            SharedPreferences.Editor editor = discountSharedPreferences.edit();
-            editor.clear();
-            editor.apply();
-        } catch (Exception e) {
-            throw new RuntimeException("Error clearing current discount", e);
-        }
+    public Completable clearCurrentDiscount() {
+        return Completable.fromAction(() ->{
+            try {
+                SharedPreferences.Editor editor = discountSharedPreferences.edit();
+                editor.clear();
+                editor.apply();
+            } catch (Exception e) {
+                throw new RuntimeException("Error clearing current discount", e);
+            }
+        });
     }
 
     @Override
@@ -124,7 +130,7 @@ public class DiscountRepository implements IDiscountRepository {
     }
 
     @Override
-    public Discount getDiscountById(int discountId) throws Exception {
+    public Maybe<Discount> getDiscountById(int discountId) {
         try {
             return discountDao.getDiscount(discountId);
         } catch (Exception e) {

@@ -91,7 +91,7 @@ public class CartFragment extends Fragment implements OnCartItemClickListener {
 
         // Observe the discount changes and apply the discount to the cart
         discountViewModel.getDiscount().observe(getViewLifecycleOwner(), discount -> {
-            cartViewModel.onApplyCurrentDiscount();
+            cartViewModel.onFetchCart();
         });
     }
 

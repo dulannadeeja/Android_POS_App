@@ -11,6 +11,7 @@ import com.example.ecommerce.utils.DateHelper;
 
 import java.util.ArrayList;
 
+import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
 
 public class OrderRepository implements IOrderRepository {
@@ -25,6 +26,11 @@ public class OrderRepository implements IOrderRepository {
     @Override
     public Single<Integer> createPendingOrderHandler(Order order) {
         return orderDao.createOrder(order);
+    }
+
+    @Override
+    public Completable updatePendingOrderHandler(Order order) {
+        return orderDao.updateOrder(order);
     }
 
     @Override

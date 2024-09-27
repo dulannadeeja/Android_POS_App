@@ -19,41 +19,34 @@ import java.util.ArrayList;
 import java.util.Objects;
 
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
+import io.reactivex.rxjava3.core.Completable;
+import io.reactivex.rxjava3.core.Single;
 import io.reactivex.rxjava3.disposables.CompositeDisposable;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 
 public class OrderViewModel extends ViewModel {
     private final IOrderRepository orderRepository;
+    private final CompositeDisposable compositeDisposable = new CompositeDisposable();
+
     private final MutableLiveData<Boolean> isLoading = new MutableLiveData<>(false);
     private final MutableLiveData<String> errorMessage = new MutableLiveData<>("");
     private final MutableLiveData<Order> order = new MutableLiveData<>();
-    private final CompositeDisposable compositeDisposable = new CompositeDisposable();
     private final MutableLiveData<Boolean> isSavedOrder = new MutableLiveData<>(false);
 
     public OrderViewModel(IOrderRepository orderRepository) {
         this.orderRepository = orderRepository;
     }
-
-    public void onSavePendingOrder(Cart cartToSave, Customer customer,OnCompletableFinishedCallback callback) {
-        isLoading.setValue(true); // Start loading state
-
-        // Create a new order object
-        if (cartToSave == null || cartToSave.getCartItems().isEmpty()) {
-            errorMessage.setValue("Cart is empty");
-            callback.onComplete(false, "Cart is empty");
-            isLoading.setValue(false);
-            return;
-        }
-
-        // Build a new order object
+    // Common method to build an Order object from Cart and Customer
+    private Order buildOrder(Cart cartToSave, Customer customer, int orderId) {
         String date = DateHelper.getTimeStamp();
 
-        Order newOrder = new Order.OrderBuilder(
+        return new Order.OrderBuilder(
                 date,
                 cartToSave.getCartTotalPrice(),
                 OrderStatus.PENDING.getStatus(),
                 cartToSave.getCartTotalTaxAndCharges(),
                 cartToSave.getCartSubTotalPrice())
+                .withOrderId(Math.max(orderId, 0))
                 .withPayment(0, cartToSave.getCartTotalPrice())
                 .withCustomerId(customer.getCustomerId())
                 .withDiscount(cartToSave.getDiscountId(), cartToSave.getDiscountValue())
@@ -61,37 +54,229 @@ public class OrderViewModel extends ViewModel {
                         cartItem -> new OrderItem(0, cartItem.getProductId(), cartItem.getQuantity())
                 ).toList()))
                 .build();
+    }
+
+    // Method to handle saving a new order
+    private void handleNewOrderSave(Order order, Single<Integer> singleAction, OnCompletableFinishedCallback callback, String successMessage, String errorMessage) {
+        isLoading.setValue(true);
 
         try {
-            validateBeforeSavePendingOrder(newOrder);
+            validateBeforeSavePendingOrder(order);
+            Log.d("OrderViewModel", "Order validation successful");
 
-            // Proceed with creating the pending order
             compositeDisposable.add(
-                    orderRepository.createPendingOrderHandler(newOrder)
+                    singleAction
                             .subscribeOn(Schedulers.io())
                             .observeOn(AndroidSchedulers.mainThread())
                             .subscribe(
                                     orderId -> {
                                         isSavedOrder.setValue(true);
-                                        errorMessage.setValue("");
-                                        callback.onComplete(true, "Order saved successfully");
+                                        this.errorMessage.setValue("");
+                                        callback.onComplete(true, successMessage);
                                     },
                                     throwable -> {
-                                        errorMessage.setValue("Error saving order");
-                                        callback.onComplete(false, "Error saving order");
+                                        this.errorMessage.setValue(errorMessage);
+                                        callback.onComplete(false, errorMessage);
+                                        Log.e("OrderViewModel", errorMessage, throwable);
                                     }
                             )
             );
         } catch (ValidationException e) {
-            errorMessage.setValue(e.getMessage());
+            this.errorMessage.setValue(e.getMessage());
             callback.onComplete(false, e.getMessage());
         } catch (Exception e) {
-            errorMessage.setValue("Error saving order");
-            callback.onComplete(false, "Error saving order");
+            this.errorMessage.setValue("Error processing order");
+            callback.onComplete(false, "Error processing order");
         } finally {
             isLoading.setValue(false);
         }
     }
+
+    // Method to handle updating an order
+    private void handleOrderUpdate(Order order, Completable completableAction, OnCompletableFinishedCallback callback, String successMessage, String errorMessage) {
+        isLoading.setValue(true);
+
+        try {
+            validateBeforeSavePendingOrder(order);
+            Log.d("OrderViewModel", "Order validation successful");
+
+            compositeDisposable.add(
+                    completableAction
+                            .subscribeOn(Schedulers.io())
+                            .observeOn(AndroidSchedulers.mainThread())
+                            .subscribe(
+                                    () -> {
+                                        isSavedOrder.setValue(true);
+                                        this.errorMessage.setValue("");
+                                        callback.onComplete(true, successMessage);
+                                    },
+                                    throwable -> {
+                                        this.errorMessage.setValue(errorMessage);
+                                        callback.onComplete(false, errorMessage);
+                                        Log.e("OrderViewModel", errorMessage, throwable);
+                                    }
+                            )
+            );
+        } catch (ValidationException e) {
+            this.errorMessage.setValue(e.getMessage());
+            callback.onComplete(false, e.getMessage());
+        } catch (Exception e) {
+            this.errorMessage.setValue("Error processing order");
+            callback.onComplete(false, "Error processing order");
+        } finally {
+            isLoading.setValue(false);
+        }
+    }
+
+    // Method to save a pending order (uses Single)
+    public void onSavePendingOrder(Cart cartToSave, Customer customer, OnCompletableFinishedCallback callback) {
+        if (cartToSave == null || cartToSave.getCartItems().isEmpty()) {
+            errorMessage.setValue("Cart is empty");
+            callback.onComplete(false, "Cart is empty");
+            return;
+        }
+
+        Order newOrder = buildOrder(cartToSave, customer, 0);
+        handleNewOrderSave(newOrder, orderRepository.createPendingOrderHandler(newOrder), callback, "Order saved successfully", "Error saving order");
+    }
+
+    // Method to update a pending order (uses Completable)
+    public void onUpdatePendingOrder(Cart cartToSave, Customer customer, OnCompletableFinishedCallback callback) {
+        if (cartToSave == null || cartToSave.getCartItems().isEmpty()) {
+            errorMessage.setValue("Cart is empty");
+            callback.onComplete(false, "Cart is empty");
+            return;
+        }
+
+        Order newOrder = buildOrder(cartToSave, customer, cartToSave.getOrderId());
+        handleOrderUpdate(newOrder, orderRepository.updatePendingOrderHandler(newOrder), callback, "Order updated successfully", "Error updating order");
+    }
+
+//    public void onSavePendingOrder(Cart cartToSave, Customer customer,OnCompletableFinishedCallback callback) {
+//        isLoading.setValue(true); // Start loading state
+//
+//        Log.d("OrderViewModel", "Order saving started");
+//
+//        // Create a new order object
+//        if (cartToSave == null || cartToSave.getCartItems().isEmpty()) {
+//            errorMessage.setValue("Cart is empty");
+//            callback.onComplete(false, "Cart is empty");
+//            isLoading.setValue(false);
+//            return;
+//        }
+//
+//        // Build a new order object
+//        String date = DateHelper.getTimeStamp();
+//
+//        Order newOrder = new Order.OrderBuilder(
+//                date,
+//                cartToSave.getCartTotalPrice(),
+//                OrderStatus.PENDING.getStatus(),
+//                cartToSave.getCartTotalTaxAndCharges(),
+//                cartToSave.getCartSubTotalPrice())
+//                .withPayment(0, cartToSave.getCartTotalPrice())
+//                .withCustomerId(customer.getCustomerId())
+//                .withDiscount(cartToSave.getDiscountId(), cartToSave.getDiscountValue())
+//                .withOrderItems(new ArrayList<>(cartToSave.getCartItems().stream().map(
+//                        cartItem -> new OrderItem(0, cartItem.getProductId(), cartItem.getQuantity())
+//                ).toList()))
+//                .build();
+//
+//        try {
+//            validateBeforeSavePendingOrder(newOrder);
+//
+//            Log.d("OrderViewModel", "Order validation successful");
+//
+//            // Proceed with creating the pending order
+//            compositeDisposable.add(
+//                    orderRepository.createPendingOrderHandler(newOrder)
+//                            .subscribeOn(Schedulers.io())
+//                            .observeOn(AndroidSchedulers.mainThread())
+//                            .subscribe(
+//                                    orderId -> {
+//                                        isSavedOrder.setValue(true);
+//                                        errorMessage.setValue("");
+//                                        callback.onComplete(true, "Order saved successfully");
+//                                    },
+//                                    throwable -> {
+//                                        errorMessage.setValue("Error saving order");
+//                                        callback.onComplete(false, "Error saving order");
+//                                    }
+//                            )
+//            );
+//        } catch (ValidationException e) {
+//            errorMessage.setValue(e.getMessage());
+//            callback.onComplete(false, e.getMessage());
+//        } catch (Exception e) {
+//            errorMessage.setValue("Error saving order");
+//            callback.onComplete(false, "Error saving order");
+//        } finally {
+//            isLoading.setValue(false);
+//        }
+//    }
+//
+//    public void onUpdatePendingOrder(Cart cartToSave, Customer customer,OnCompletableFinishedCallback callback){
+//        isLoading.setValue(true); // Start loading state
+//
+//        Log.d("OrderViewModel", "Order updating started");
+//
+//        // Create a new order object
+//        if (cartToSave == null || cartToSave.getCartItems().isEmpty()) {
+//            errorMessage.setValue("Cart is empty");
+//            callback.onComplete(false, "Cart is empty");
+//            isLoading.setValue(false);
+//            return;
+//        }
+//
+//        // Build a new order object
+//        String date = DateHelper.getTimeStamp();
+//
+//        Order newOrder = new Order.OrderBuilder(
+//                date,
+//                cartToSave.getCartTotalPrice(),
+//                OrderStatus.PENDING.getStatus(),
+//                cartToSave.getCartTotalTaxAndCharges(),
+//                cartToSave.getCartSubTotalPrice())
+//                .withPayment(0, cartToSave.getCartTotalPrice())
+//                .withCustomerId(customer.getCustomerId())
+//                .withDiscount(cartToSave.getDiscountId(), cartToSave.getDiscountValue())
+//                .withOrderItems(new ArrayList<>(cartToSave.getCartItems().stream().map(
+//                        cartItem -> new OrderItem(0, cartItem.getProductId(), cartItem.getQuantity())
+//                ).toList()))
+//                .build();
+//
+//        try {
+//            validateBeforeSavePendingOrder(newOrder);
+//
+//            Log.d("OrderViewModel", "Order validation successful");
+//
+//            // Proceed with creating the pending order
+//            compositeDisposable.add(
+//                    orderRepository.updatePendingOrderHandler(newOrder)
+//                            .subscribeOn(Schedulers.io())
+//                            .observeOn(AndroidSchedulers.mainThread())
+//                            .subscribe(
+//                                    () -> {
+//                                        isSavedOrder.setValue(true);
+//                                        errorMessage.setValue("");
+//                                        callback.onComplete(true, "Order updated successfully");
+//                                    },
+//                                    throwable -> {
+//                                        errorMessage.setValue("Error updating order");
+//                                        callback.onComplete(false, "Error updating order");
+//                                    }
+//                            )
+//            );
+//        } catch (ValidationException e) {
+//            errorMessage.setValue(e.getMessage());
+//            callback.onComplete(false, e.getMessage());
+//        } catch (Exception e) {
+//            errorMessage.setValue("Error updating order");
+//            callback.onComplete(false, "Error updating order");
+//        } finally {
+//            isLoading.setValue(false);
+//        }
+//    }
 
     public void onLoadPendingOrders(OnOrdersFetchedCallback callback) {
         isLoading.setValue(true);
@@ -191,5 +376,15 @@ public class OrderViewModel extends ViewModel {
 
     public MutableLiveData<Order> getOrder() {
         return order;
+    }
+
+    public MutableLiveData<Boolean> getIsSavedOrder() {
+        return isSavedOrder;
+    }
+
+    @Override
+    protected void onCleared() {
+        super.onCleared();
+        compositeDisposable.clear();
     }
 }

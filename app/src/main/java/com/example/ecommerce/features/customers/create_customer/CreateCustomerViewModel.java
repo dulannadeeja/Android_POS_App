@@ -8,9 +8,14 @@ import androidx.lifecycle.ViewModel;
 import com.example.ecommerce.model.Customer;
 import com.example.ecommerce.repository.ICustomerRepository;
 
+import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
+import io.reactivex.rxjava3.disposables.CompositeDisposable;
+import io.reactivex.rxjava3.schedulers.Schedulers;
+
 public class CreateCustomerViewModel extends ViewModel {
     public static final String TAG = "CreateCustomerViewModel";
     private ICustomerRepository customerRepository;
+    private final CompositeDisposable compositeDisposable = new CompositeDisposable();
 
     private MutableLiveData<Boolean> isEditingMode = new MutableLiveData<>(false);
     private MutableLiveData<String> firstNameError = new MutableLiveData<>();
@@ -157,24 +162,50 @@ public class CreateCustomerViewModel extends ViewModel {
         return isValid;
     }
 
-    public void onConfirmCustomerSave(Customer customer,OnConfirmCustomerCallback onConfirmCustomerCallback) {
-        try {
-            if (validateCustomer(customer)) {
-                int customerId = customerRepository.newCustomerHandler(customer);
-                customerRepository.setCurrentCustomerHandler(customerId);
-                onConfirmCustomerCallback.onSuccessful();
-            }
-        } catch (Exception e) {
-            Log.e(TAG, "error while saving customer, ", e);
+    public void onConfirmCustomerSave(Customer customer, OnConfirmCustomerCallback onConfirmCustomerCallback) {
+        if (!validateCustomer(customer)) {
+            Log.e(TAG, "Customer validation failed");
             onConfirmCustomerCallback.onFailed();
+            return;
         }
+
+        compositeDisposable.add(
+                customerRepository.newCustomerHandler(customer)
+                        .subscribeOn(Schedulers.io())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .flatMap(customerId ->
+                                customerRepository.setCurrentCustomerHandler(customerId)
+                                        .toSingleDefault(customerId) // Convert Completable to Single, returning customerId if successful
+                        )
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe(
+                                customerId -> {
+                                    Log.d(TAG, "Customer saved and set as current successfully: " + customerId);
+                                    onConfirmCustomerCallback.onSuccessful();
+                                },
+                                throwable -> {
+                                    Log.e(TAG, "Error while saving or setting customer: ", throwable);
+                                    onConfirmCustomerCallback.onFailed();
+                                }
+                        )
+        );
     }
 
     public void onConfirmCustomerUpdate(Customer customer,OnConfirmCustomerCallback onConfirmCustomerCallback) {
         try {
             if (validateCustomer(customer)) {
-                customerRepository.updateCustomerHandler(customer);
-                onConfirmCustomerCallback.onSuccessful();
+                compositeDisposable.add(
+                        customerRepository.updateCustomerHandler(customer)
+                                .subscribeOn(Schedulers.io())
+                                .observeOn(AndroidSchedulers.mainThread())
+                                .subscribe(() -> {
+                                    Log.d(TAG, "Customer updated successfully");
+                                    onConfirmCustomerCallback.onSuccessful();
+                                }, throwable -> {
+                                    Log.e(TAG, "error while updating customer, ", throwable);
+                                    onConfirmCustomerCallback.onFailed();
+                                })
+                );
             }
         } catch (Exception e) {
             Log.e(TAG, "error while updating customer, ", e);
@@ -231,6 +262,12 @@ public class CreateCustomerViewModel extends ViewModel {
 
     public void setIsEditingMode(Boolean isEditingMode) {
         this.isEditingMode.setValue(isEditingMode);
+    }
+
+    @Override
+    protected void onCleared() {
+        super.onCleared();
+        compositeDisposable.clear();
     }
 
 }

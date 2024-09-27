@@ -75,10 +75,8 @@ public class ProductDao implements IProductDao {
     @Override
     public ArrayList<Product> getAllProducts() {
 
-        SQLiteDatabase db = databaseHelper.getReadableDatabase();
-        Cursor cursor = db.rawQuery("SELECT * FROM " + DatabaseHelper.TABLE_PRODUCTS, null);
-
-        try {
+        try(SQLiteDatabase db = databaseHelper.getReadableDatabase();
+            Cursor cursor = db.rawQuery("SELECT * FROM " + DatabaseHelper.TABLE_PRODUCTS, null)) {
 
             ArrayList<Product> products = new ArrayList<>();
 
@@ -105,8 +103,6 @@ public class ProductDao implements IProductDao {
 
         } catch (Exception e) {
             throw new RuntimeException("Error getting products, From product dao", e);
-        } finally {
-            cursor.close();
         }
         return new ArrayList<>();
     }

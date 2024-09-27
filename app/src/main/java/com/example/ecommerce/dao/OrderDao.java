@@ -6,6 +6,8 @@ import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
+import android.database.sqlite.SQLiteTransactionListener;
+import android.util.Log;
 
 import com.example.ecommerce.features.order.OrderStatus;
 import com.example.ecommerce.model.Order;
@@ -28,17 +30,21 @@ public class OrderDao implements IOrderDao {
     @Override
     public Single<Integer> createOrder(Order order) {
         return Single.fromCallable(() -> {
+
+            Log.d("OrderDao", "Order saving to database started");
+
             int createdOrderId = -1;
+
+            // Get writable database
+            SQLiteDatabase database = null;
 
             try {
 
-                // Get writable database
-                SQLiteDatabase database = databaseHelper.getWritableDatabase();
+                database = databaseHelper.getWritableDatabase();
 
                 // Begin the transaction
                 database.beginTransaction();
 
-                // Insert order values into the database
                 ContentValues orderValues = new ContentValues();
                 orderValues.put(DatabaseHelper.COLUMN_ORDER_DATE, order.getOrderDate());
                 orderValues.put(DatabaseHelper.COLUMN_ORDER_TOTAL, order.getOrderTotal());
@@ -54,6 +60,8 @@ public class OrderDao implements IOrderDao {
                 // Insert the order into the database and get the new row ID
                 createdOrderId = (int) database.insertOrThrow(DatabaseHelper.TABLE_ORDERS, null, orderValues);
 
+                Log.d("OrderDao", "Order saved to database with ID: " + createdOrderId);
+
                 // Insert each order item related to the created order
                 for (OrderItem orderItem : order.getOrderItems()) {
                     // Prepare values for the order item
@@ -64,15 +72,75 @@ public class OrderDao implements IOrderDao {
 
                     // Insert the order item
                     database.insertOrThrow(DatabaseHelper.TABLE_ORDER_ITEMS, null, orderItemValues);
+
+                    Log.d("OrderDao", "order item saved to database - " + "Order ID: " + createdOrderId + "Product ID: " + orderItem.getProductId());
                 }
 
                 // Mark the transaction as successful
                 database.setTransactionSuccessful();
+
+                Log.d("OrderDao", "Order saving to database completed successfully");
             } catch (SQLiteException e) {
                 throw new RuntimeException("Error creating order and its items", e);
+            } finally {
+                if(database != null) {
+                    // End the transaction
+                    database.endTransaction();
+                    // Close the database
+                    database.close();
+                }
             }
             return createdOrderId;
         });
+    }
+
+    @Override
+    public Completable updateOrder(Order order){
+        return Completable.create(
+                emitter -> {
+                    SQLiteDatabase database = databaseHelper.getWritableDatabase();
+                    database.beginTransaction();
+                    try {
+                        ContentValues orderValues = new ContentValues();
+                        orderValues.put(DatabaseHelper.COLUMN_ORDER_DATE, order.getOrderDate());
+                        orderValues.put(DatabaseHelper.COLUMN_ORDER_TOTAL, order.getOrderTotal());
+                        orderValues.put(DatabaseHelper.COLUMN_ORDER_DISCOUNT_ID, order.getDiscountId());
+                        orderValues.put(DatabaseHelper.COLUMN_ORDER_DISCOUNT_AMOUNT, order.getDiscountAmount());
+                        orderValues.put(DatabaseHelper.COLUMN_ORDER_TAX_AND_CHARGES, order.getTaxAndCharges());
+                        orderValues.put(DatabaseHelper.COLUMN_ORDER_SUB_TOTAL, order.getSubTotal());
+                        orderValues.put(DatabaseHelper.COLUMN_ORDER_PAID_AMOUNT, order.getPaidAmount());
+                        orderValues.put(DatabaseHelper.COLUMN_ORDER_DUE_AMOUNT, order.getDueAmount());
+                        orderValues.put(DatabaseHelper.COLUMN_ORDER_CUSTOMER_ID, order.getCustomerId());
+                        orderValues.put(DatabaseHelper.COLUMN_ORDER_STATUS, order.getOrderStatus());
+                        database.update(DatabaseHelper.TABLE_ORDERS, orderValues, DatabaseHelper.COLUMN_ORDER_ID + " = " + order.get_orderId(), null);
+
+                        // Delete all order items related to the order
+                        database.delete(DatabaseHelper.TABLE_ORDER_ITEMS, DatabaseHelper.COLUMN_ORDER_ID_ORDER_ITEMS + " = " + order.get_orderId(), null);
+
+                        // Insert each order item related to the created order
+                        for (OrderItem orderItem : order.getOrderItems()) {
+                            // Prepare values for the order item
+                            ContentValues orderItemValues = new ContentValues();
+                            orderItemValues.put(DatabaseHelper.COLUMN_ORDER_ID_ORDER_ITEMS, order.get_orderId()); // Use the created order ID
+                            orderItemValues.put(DatabaseHelper.COLUMN_PRODUCT_ID_ORDER_ITEMS, orderItem.getProductId());
+                            orderItemValues.put(DatabaseHelper.COLUMN_QUANTITY, orderItem.getQuantity());
+
+                            // Insert the order item
+                            database.insertOrThrow(DatabaseHelper.TABLE_ORDER_ITEMS, null, orderItemValues);
+
+                            Log.d("OrderDao", "order item saved to database - " + "Order ID: " + order.get_orderId() + "Product ID: " + orderItem.getProductId());
+                        }
+
+                        database.setTransactionSuccessful();
+                        emitter.onComplete();
+                    } catch (SQLException e) {
+                        emitter.onError(e);
+                    } finally {
+                        database.endTransaction();
+                        database.close();
+                    }
+                }
+        );
     }
 
     @SuppressLint("Range")

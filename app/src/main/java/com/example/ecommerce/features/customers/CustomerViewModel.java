@@ -10,9 +10,14 @@ import androidx.lifecycle.MutableLiveData;
 import com.example.ecommerce.model.Customer;
 import com.example.ecommerce.repository.ICustomerRepository;
 
+import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
+import io.reactivex.rxjava3.disposables.CompositeDisposable;
+import io.reactivex.rxjava3.schedulers.Schedulers;
+
 public class CustomerViewModel extends AndroidViewModel {
     private static final String TAG = "CustomerViewModel";
     private ICustomerRepository customerRepository;
+    private final CompositeDisposable compositeDisposable = new CompositeDisposable();
 
     private MutableLiveData<Customer> customer = new MutableLiveData<>(new Customer.CustomerBuilder().buildCustomer());
 
@@ -23,40 +28,53 @@ public class CustomerViewModel extends AndroidViewModel {
     }
 
     public void onLoadCustomer(int customerId) {
-        try{
-            Customer customer = customerRepository.getCustomerByIdHandler(customerId);
-            this.customer.setValue(customer);
-        }catch (Exception e){
-            Log.e(TAG, "error while fetching customer, ", e);
-        }
+        compositeDisposable.add(
+                customerRepository.getCustomerByIdHandler(customerId)
+                        .subscribeOn(Schedulers.io())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe(customer -> {
+                            this.customer.setValue(customer);
+                        }, throwable -> {
+                            Log.e(TAG, "error while fetching customer, ", throwable);
+                        })
+        );
     }
 
     public void onSetCurrentCustomer(int customerId) {
-        try{
-            customerRepository.setCurrentCustomerHandler(customerId);
-            onLoadCurrentCustomer();
-        }catch (Exception e){
-            Log.e(TAG, "error while setting current customer, ", e);
-        }
+        compositeDisposable.add(
+                customerRepository.setCurrentCustomerHandler(customerId)
+                        .subscribeOn(Schedulers.io())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe(this::onLoadCurrentCustomer, throwable -> {
+                            Log.e(TAG, "error while setting current customer, ", throwable);
+                        })
+        );
     }
 
     public void onClearCurrentCustomer() {
-        try{
-            customerRepository.clearCurrentCustomerHandler();
-            onLoadCurrentCustomer();
-        }catch (Exception e){
-            Log.e(TAG, "error while clearing current customer, ", e);
-        }
+        compositeDisposable.add(
+                customerRepository.clearCurrentCustomerHandler()
+                        .subscribeOn(Schedulers.io())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe(this::onLoadCurrentCustomer, throwable -> {
+                            Log.e(TAG, "error while clearing current customer, ", throwable);
+                        })
+        );
     }
 
     public void onLoadCurrentCustomer() {
-        try{
-            Customer currentCustomer = customerRepository.getCurrentCustomerHandler();
-            currentCustomer = currentCustomer != null ? currentCustomer : new Customer.CustomerBuilder().buildCustomer();
-            customer.setValue(currentCustomer);
-        }catch (Exception e){
-            Log.e(TAG, "error while fetching current customer, ", e);
-        }
+        compositeDisposable.add(
+                customerRepository.getCurrentCustomerHandler()
+                        .subscribeOn(Schedulers.io())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe(customer -> {
+                            this.customer.setValue(customer);
+                        }, throwable -> {
+                            Log.e(TAG, "error while fetching current customer, ", throwable);
+                        }, () -> {
+                            this.customer.setValue(new Customer.CustomerBuilder().buildCustomer());
+                        })
+        );
     }
 
     public <T> void applyUpdateToCustomer(String field, T value) {
@@ -103,5 +121,11 @@ public class CustomerViewModel extends AndroidViewModel {
 
     public MutableLiveData<Customer> getCustomer() {
         return customer;
+    }
+
+    @Override
+    protected void onCleared() {
+        super.onCleared();
+        compositeDisposable.clear();
     }
 }

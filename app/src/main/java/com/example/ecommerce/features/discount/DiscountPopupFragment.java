@@ -132,7 +132,6 @@ public class DiscountPopupFragment extends DialogFragment {
                     .withDiscountValue(discountValue)
                     .build();
             discountViewModel.onAddDiscount(discount);
-            Toast.makeText(getContext(), "Discount added", Toast.LENGTH_SHORT).show();
         });
 
         // observe the discount value

@@ -25,7 +25,7 @@ public class ProductsAdapter extends RecyclerView.Adapter<ProductsAdapter.ViewHo
     private final OnItemClickListener listener;
     private final Context context;
     private ArrayList<Product> products = new ArrayList<Product>();
-    private HashMap<Integer, Integer> productQuantity = new HashMap<>();
+    private final HashMap<Integer, Integer> productQuantity = new HashMap<>();
 
     public ProductsAdapter(OnItemClickListener listener, Context context, ArrayList<Product> products) {
         this.listener = listener;
@@ -45,7 +45,6 @@ public class ProductsAdapter extends RecyclerView.Adapter<ProductsAdapter.ViewHo
         if(products.get(position).getProductImage() != null) {
             Glide.with(context)
                     .load(products.get(position).getProductImage())
-//                    .circleCrop()  // This will make the image round
                     .into(holder.ivProductImage);
         }else{
             holder.ivProductImage.setImageResource(R.drawable.product_image_placeholder);

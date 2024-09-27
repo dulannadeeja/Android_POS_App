@@ -96,13 +96,13 @@ public class ProductsFragment extends Fragment implements OnItemClickListener {
                 });
 
         cartViewModel.getCart().observe(getViewLifecycleOwner(), cart -> {
-            if (cart != null) {
+            if (cart == null || cart.getCartItems() == null || cart.getCartItems().isEmpty()) {
+                adapter.clearProductQuantity();
+            } else {
                 ArrayList<CartItem> cartItems = cart.getCartItems();
                 cartItems.forEach(cartItem -> {
                     adapter.setProductQuantity(cartItem.getProductId(), cartItem.getQuantity());
                 });
-            }else{
-                adapter.clearProductQuantity();
             }
         });
     }
@@ -112,7 +112,6 @@ public class ProductsFragment extends Fragment implements OnItemClickListener {
         super.onResume();
         productsViewModel.setCustomer();
     }
-
 
 
     @Override

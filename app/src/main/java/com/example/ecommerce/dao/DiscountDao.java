@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.Locale;
 
+import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Single;
 import kotlin.Suppress;
 
@@ -25,78 +26,89 @@ public class DiscountDao implements IDiscountDao {
     }
 
     @Override
-    public int createDiscount(Discount discount) throws Exception {
-        try {
-            SQLiteDatabase db = databaseHelper.getWritableDatabase();
-            String query = "INSERT INTO " + DatabaseHelper.TABLE_DISCOUNTS + " (" +
-                    DatabaseHelper.COLUMN_DISCOUNT_TYPE + ", " +
-                    DatabaseHelper.COLUMN_DISCOUNT_VALUE + ") " +
-                    "VALUES (?, ?, ?)";
+    public Single<Integer> createDiscount(Discount discount) {
+        return Single.create(emitter -> {
+            try {
+                Log.d("DiscountDao", "Saving discount: " + discount.getDiscountType() + " with value: " + discount.getDiscountValue());
+                SQLiteDatabase db = databaseHelper.getWritableDatabase();
+                String query = "INSERT INTO " + DatabaseHelper.TABLE_DISCOUNTS + " (" +
+                        DatabaseHelper.COLUMN_DISCOUNT_TYPE + ", " +
+                        DatabaseHelper.COLUMN_DISCOUNT_VALUE + ") " +
+                        "VALUES (?, ?, ?)";
 
-            ContentValues args = new ContentValues();
-            args.put(DatabaseHelper.COLUMN_DISCOUNT_TYPE, discount.getDiscountType());
-            args.put(DatabaseHelper.COLUMN_DISCOUNT_VALUE, discount.getDiscountValue());
+                ContentValues args = new ContentValues();
+                args.put(DatabaseHelper.COLUMN_DISCOUNT_TYPE, discount.getDiscountType());
+                args.put(DatabaseHelper.COLUMN_DISCOUNT_VALUE, discount.getDiscountValue());
 
-            return (int) db.insertOrThrow(DatabaseHelper.TABLE_DISCOUNTS, null, args);
-        } catch (Exception e) {
-            throw new RuntimeException("Error creating discount", e);
-        }
+                int id = (int) db.insertOrThrow(DatabaseHelper.TABLE_DISCOUNTS, null, args);
+                emitter.onSuccess(id);
+            } catch (Exception e) {
+                throw new RuntimeException("Error creating discount", e);
+            }
+        });
     }
 
     @SuppressLint("Range")
     @Override
-    public Discount getDiscount(int discountId) throws Exception {
-        try {
-            SQLiteDatabase db = databaseHelper.getReadableDatabase();
-            String query = "SELECT * FROM " + DatabaseHelper.TABLE_DISCOUNTS + " WHERE " + DatabaseHelper.COLUMN_DISCOUNT_ID + " = " + discountId;
-            Cursor cursor = db.rawQuery(query, null);
-            if (cursor.getCount() == 0) {
-                return null;
-            } else {
-                cursor.moveToFirst();
+    public Maybe<Discount> getDiscount(int discountId) {
+        return Maybe.<Discount>create(emitter -> {
+            try {
+                Log.d("DiscountDao", "Getting discount with ID: " + discountId);
+                SQLiteDatabase db = databaseHelper.getReadableDatabase();
+                String query = "SELECT * FROM " + DatabaseHelper.TABLE_DISCOUNTS + " WHERE " + DatabaseHelper.COLUMN_DISCOUNT_ID + " = " + discountId;
+                Cursor cursor = db.rawQuery(query, null);
+                if (cursor.getCount() == 0) {
+                    cursor.close();
+                    emitter.onComplete();
+                    Log.d("DiscountDao", "No discount found with ID: " + discountId);
+                } else {
+                    cursor.moveToFirst();
 
-                String discountType = cursor.getString(cursor.getColumnIndex(DatabaseHelper.COLUMN_DISCOUNT_TYPE));
-                double discountValue = cursor.getDouble(cursor.getColumnIndex(DatabaseHelper.COLUMN_DISCOUNT_VALUE));
-                Discount discount = new Discount.DiscountBuilder()
-                        .withDiscountId(discountId)
-                        .withDiscountType(discountType)
-                        .withDiscountValue(discountValue)
-                        .build();
+                    String discountType = cursor.getString(cursor.getColumnIndex(DatabaseHelper.COLUMN_DISCOUNT_TYPE));
+                    double discountValue = cursor.getDouble(cursor.getColumnIndex(DatabaseHelper.COLUMN_DISCOUNT_VALUE));
+                    Discount discount = new Discount.DiscountBuilder()
+                            .withDiscountId(discountId)
+                            .withDiscountType(discountType)
+                            .withDiscountValue(discountValue)
+                            .build();
 
-                cursor.close();
-                return discount;
+                    cursor.close();
+                    emitter.onSuccess(discount);
+                    Log.d("DiscountDao", "Discount found with ID: " + discountId);
+                }
+
+            } catch (Exception e) {
+                throw new RuntimeException("Error getting discount", e);
             }
-
-        } catch (Exception e) {
-            throw new RuntimeException("Error getting discount", e);
-        }
+        });
     }
 
     @Override
     @SuppressLint("Range")
-    public Discount isExistingDiscount(String discountType, double discountValue) throws Exception {
-        try {
-            SQLiteDatabase db = databaseHelper.getReadableDatabase();
-            String query = "SELECT * FROM " + DatabaseHelper.TABLE_DISCOUNTS + " WHERE " + DatabaseHelper.COLUMN_DISCOUNT_TYPE + " = ? AND " + DatabaseHelper.COLUMN_DISCOUNT_VALUE + " = ?";
-            Cursor cursor = db.rawQuery(query, new String[]{discountType, String.valueOf(discountValue)});
-            if (cursor.getCount() == 0) {
-                return null;
-            } else {
-                cursor.moveToFirst();
+    public Maybe<Discount> isExistingDiscount(String discountType, double discountValue){
+        return Maybe.<Discount>create(emitter -> {
+            try {
+                SQLiteDatabase db = databaseHelper.getReadableDatabase();
+                String query = "SELECT * FROM " + DatabaseHelper.TABLE_DISCOUNTS + " WHERE " + DatabaseHelper.COLUMN_DISCOUNT_TYPE + " = ? AND " + DatabaseHelper.COLUMN_DISCOUNT_VALUE + " = ?";
+                Cursor cursor = db.rawQuery(query, new String[]{discountType, String.valueOf(discountValue)});
+                if (cursor.getCount() == 0) {
+                    cursor.close();
+                    emitter.onComplete();
+                } else {
+                    cursor.moveToFirst();
+                    int discountId = cursor.getInt(cursor.getColumnIndex(DatabaseHelper.COLUMN_DISCOUNT_ID));
+                    Discount discount = new Discount.DiscountBuilder()
+                            .withDiscountId(discountId)
+                            .withDiscountType(discountType)
+                            .withDiscountValue(discountValue)
+                            .build();
+                    cursor.close();
+                    emitter.onSuccess(discount);
+                }
 
-                 int discountId = cursor.getInt(cursor.getColumnIndex(DatabaseHelper.COLUMN_DISCOUNT_ID));
-                Discount discount = new Discount.DiscountBuilder()
-                        .withDiscountId(discountId)
-                        .withDiscountType(discountType)
-                        .withDiscountValue(discountValue)
-                        .build();
-
-                cursor.close();
-                return discount;
+            } catch (Exception e) {
+                throw new RuntimeException("Error getting discount", e);
             }
-
-        } catch (Exception e) {
-            throw new RuntimeException("Error getting discount", e);
-        }
+        });
     }
 }

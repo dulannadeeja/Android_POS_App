@@ -11,10 +11,15 @@ import com.example.ecommerce.repository.IProductRepository;
 
 import java.util.ArrayList;
 
+import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
+import io.reactivex.rxjava3.disposables.CompositeDisposable;
+import io.reactivex.rxjava3.schedulers.Schedulers;
+
 public class ProductsViewModel extends ViewModel {
 
     private final IProductRepository repository;
     private final ICustomerRepository customerRepository;
+    private final CompositeDisposable compositeDisposable = new CompositeDisposable();
 
     private static final String TAG = "ProductsViewModel";
     private static final MutableLiveData<Boolean> isLoading = new MutableLiveData<>(false);
@@ -29,17 +34,21 @@ public class ProductsViewModel extends ViewModel {
     }
 
     public void setCustomer(){
-        try {
             isLoading.setValue(true);
-            Customer customer = customerRepository.getCurrentCustomerHandler();
-            currentCustomer.setValue(customer != null ? customer : new Customer.CustomerBuilder().buildCustomer());
-            errorMessage.setValue("");
-        } catch (Exception e) {
-            Log.e(TAG, "Error fetching customer", e);
-            errorMessage.setValue("Error fetching customer");
-        } finally {
-            isLoading.setValue(false);
-        }
+            compositeDisposable.add(
+                    customerRepository.getCurrentCustomerHandler()
+                            .subscribeOn(Schedulers.io())
+                            .observeOn(AndroidSchedulers.mainThread())
+                            .subscribe(customer -> {
+                                currentCustomer.setValue(customer != null ? customer : new Customer.CustomerBuilder().buildCustomer());
+                                errorMessage.setValue("");
+                                isLoading.setValue(false);
+                            }, throwable -> {
+                                Log.e(TAG, "Error fetching customer", throwable);
+                                errorMessage.setValue("Error fetching customer");
+                                isLoading.setValue(false);
+                            })
+            );
     }
 
     public void setProducts() {

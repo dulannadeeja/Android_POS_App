@@ -5,8 +5,11 @@ import com.example.ecommerce.model.Discount;
 import java.util.ArrayList;
 import java.util.Date;
 
+import io.reactivex.rxjava3.core.Maybe;
+import io.reactivex.rxjava3.core.Single;
+
 public interface IDiscountDao {
-    int createDiscount(Discount discount) throws Exception;
-    Discount getDiscount(int discountId) throws Exception;
-    Discount isExistingDiscount(String discountType, double discountValue) throws Exception;
+    Single<Integer> createDiscount(Discount discount) ;
+    Maybe<Discount> getDiscount(int discountId) ;
+    Maybe<Discount> isExistingDiscount(String discountType, double discountValue);
 }

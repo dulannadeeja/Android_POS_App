@@ -5,6 +5,7 @@ import com.example.ecommerce.model.OrderItem;
 
 import java.util.ArrayList;
 
+import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
 
 public interface IOrderDao {
@@ -14,4 +15,5 @@ public interface IOrderDao {
     Single<ArrayList<Order>> filterOrdersByStatus(String status);
     Single<ArrayList<OrderItem>> getOrderItems(int orderId);
     Single<ArrayList<Order>> getOrdersByCustomer(int customerId);
+    Completable updateOrder(Order order);
 }

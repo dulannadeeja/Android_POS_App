@@ -126,7 +126,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         // ------------------------------------ Database usage ------------------------------------
         DatabaseHelper database = App.appModule.provideDatabaseHelper();
-        // database.onUpgrade(database.getWritableDatabase(), 1, 1);
+//         database.onUpgrade(database.getWritableDatabase(), 1, 1);
 
 
         // ------------------------------------ Example of firebase database usage ------------------------------------
@@ -168,23 +168,46 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     openOrdersFragment.show(getSupportFragmentManager(), OpenOrdersFragment.TAG);
                 });
             } else {
+
+                Cart cartToSave = cartViewModel.getCart().getValue();
+                Customer customer = customerViewModel.getCustomer().getValue();
+
                 binding.chargeButton.setEnabled(true);
                 binding.chargeButton.setText("CHARGE " + cart.getCartTotalPrice());
-                binding.saveOrderButton.setText("SAVE");
-                binding.saveOrderButton.setOnClickListener(v -> {
-                    Cart cartToSave = cartViewModel.getCart().getValue();
-                    Customer customer = customerViewModel.getCustomer().getValue();
-                    orderViewModel.onSavePendingOrder(cartToSave, customer,
-                            ((isSuccess, message) -> {
-                                if (isSuccess) {
-                                    Toast.makeText(this, "Order saved successfully", Toast.LENGTH_SHORT).show();
-                                    cartViewModel.onClearCart();
-                                } else {
-                                    Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
-                                }
-                            })
-                    );
-                });
+
+                if(cart.isOpenOrder() && cart.getOrderId() != 0){
+                    binding.saveOrderButton.setText("UPDATE");
+                    binding.saveOrderButton.setOnClickListener(v -> {
+                        orderViewModel.onUpdatePendingOrder(cartToSave, customer,
+                                ((isSuccess, message) -> {
+                                    if (isSuccess) {
+                                        Toast.makeText(this, "Order updated successfully", Toast.LENGTH_SHORT).show();
+                                        cartViewModel.onClearCart();
+                                        customerViewModel.onClearCurrentCustomer();
+                                        discountViewModel.onClearDiscount();
+                                    } else {
+                                        Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
+                                    }
+                                })
+                        );
+                    });
+                }else{
+                    binding.saveOrderButton.setText("SAVE");
+                    binding.saveOrderButton.setOnClickListener(v -> {
+                        orderViewModel.onSavePendingOrder(cartToSave, customer,
+                                ((isSuccess, message) -> {
+                                    if (isSuccess) {
+                                        Toast.makeText(this, "Order saved successfully", Toast.LENGTH_SHORT).show();
+                                        cartViewModel.onClearCart();
+                                        customerViewModel.onClearCurrentCustomer();
+                                        discountViewModel.onClearDiscount();
+                                    } else {
+                                        Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
+                                    }
+                                })
+                        );
+                    });
+                }
             }
         });
 

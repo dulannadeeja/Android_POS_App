@@ -91,8 +91,8 @@ public class CustomersFragment extends DialogFragment implements OnCustomerClick
 
     @Override
     public void onAddCustomerClicked(Customer customer) {
-        Toast.makeText(getContext(), "Add Customer Clicked", Toast.LENGTH_SHORT).show();
         customerViewModel.onSetCurrentCustomer(customer.getCustomerId());
+        dismiss();
     }
 
     @Override

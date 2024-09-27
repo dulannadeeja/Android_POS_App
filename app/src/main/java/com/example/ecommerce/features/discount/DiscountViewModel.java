@@ -15,12 +15,13 @@ import io.reactivex.rxjava3.schedulers.Schedulers;
 public class DiscountViewModel extends ViewModel {
     private static final String TAG = "DiscountViewModel";
     private IDiscountRepository discountRepository;
+    private final CompositeDisposable compositeDisposable = new CompositeDisposable();
+
     private MutableLiveData<Boolean> isLoading = new MutableLiveData<>(false);
     private MutableLiveData<String> errorMessage = new MutableLiveData<>("");
     private MutableLiveData<Discount> discount = new MutableLiveData<>();
     private MutableLiveData<String> discountType = new MutableLiveData<>("");
     private MutableLiveData<Double> discountValue = new MutableLiveData<>(0.0);
-    private CompositeDisposable compositeDisposable = new CompositeDisposable();
 
     public DiscountViewModel(IDiscountRepository discountRepository) {
         this.discountRepository = discountRepository;
@@ -51,52 +52,83 @@ public class DiscountViewModel extends ViewModel {
     }
 
     public void onSetCurrentDiscount(int discountId) {
-        try {
-            isLoading.setValue(true);
-            Discount discount = discountRepository.getDiscountById(discountId);
-            discountRepository.saveCurrentDiscount(discount);
-            onFetchCurrentDiscount();
-            errorMessage.setValue("");
-        } catch (Exception e) {
-            errorMessage.setValue("Error setting discount");
-            Log.e(TAG, "Error setting discount", e);
-        } finally {
-            isLoading.setValue(false);
-        }
+        isLoading.setValue(true);
+
+        compositeDisposable.add(
+                discountRepository.getDiscountById(discountId)
+                        .subscribeOn(Schedulers.io())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .flatMapCompletable(discount ->
+                                discountRepository.saveCurrentDiscount(discount)
+                        )
+                        .doOnComplete(this::onFetchCurrentDiscount)  // Fetch current discount once saved
+                        .subscribe(
+                                () -> {
+                                    Log.d(TAG, "Discount set successfully");
+                                    errorMessage.setValue("");
+                                    isLoading.setValue(false);
+                                },
+                                throwable -> {
+                                    errorMessage.setValue("Error setting discount");
+                                    Log.e(TAG, "Error setting discount", throwable);
+                                    isLoading.setValue(false);
+                                }
+                        )
+        );
     }
 
     public void onAddDiscount(Discount discount) {
-        try {
-            isLoading.setValue(true);
-            int discountId = discountRepository.newDiscountHandler(discount);
-            Discount discountWithId = new Discount.DiscountBuilder()
-                    .withDiscountId(discountId)
-                    .withDiscountType(discount.getDiscountType())
-                    .withDiscountValue(discount.getDiscountValue())
-                    .build();
-            discountRepository.saveCurrentDiscount(discountWithId);
-            onFetchCurrentDiscount();
-            errorMessage.setValue("");
-        } catch (Exception e) {
-            errorMessage.setValue("Error adding discount");
-            Log.e(TAG, "Error adding discount", e);
-        } finally {
-            isLoading.setValue(false);
-        }
+        isLoading.setValue(true);
+        Log.d(TAG, "Adding discount started");
+
+        compositeDisposable.add(
+                discountRepository.newDiscountHandler(discount)
+                        .subscribeOn(Schedulers.io())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .flatMap(discountId -> {
+                            Discount discountWithId = new Discount.DiscountBuilder()
+                                    .withDiscountId(discountId)
+                                    .withDiscountType(discount.getDiscountType())
+                                    .withDiscountValue(discount.getDiscountValue())
+                                    .build();
+
+                            // Return the saveCurrentDiscount call as a Single to chain it.
+                            return discountRepository.saveCurrentDiscount(discountWithId)
+                                    .toSingleDefault(discountId);
+                        })
+                        .subscribe(
+                                discountId -> {
+                                    onFetchCurrentDiscount(); // Fetch the current discount after successful addition.
+                                    Log.d(TAG, "Discount added and saved successfully");
+                                    errorMessage.setValue(""); // Clear error messages if successful.
+                                },
+                                throwable -> {
+                                    errorMessage.setValue("Error adding or saving discount");
+                                    Log.e(TAG, "Error adding or saving discount", throwable);
+                                }
+                        )
+        );
     }
 
     public void onClearDiscount() {
-        try {
-            isLoading.setValue(true);
-            discountRepository.clearCurrentDiscount();
-            onFetchCurrentDiscount();
-            errorMessage.setValue("");
-        } catch (Exception e) {
-            errorMessage.setValue("Error clearing discount");
-            Log.e(TAG, "Error clearing discount", e);
-        } finally {
-            isLoading.setValue(false);
-        }
+        isLoading.setValue(true);
+        compositeDisposable.add(
+                discountRepository.clearCurrentDiscount()
+                        .subscribeOn(Schedulers.io())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe(
+                                () -> {
+                                    Log.d(TAG, "Discount cleared successfully");
+                                    errorMessage.setValue("");
+                                    onFetchCurrentDiscount(); // Fetch the current discount after successful clearing.
+                                },
+                                throwable -> {
+                                    errorMessage.setValue("Error clearing discount");
+                                    Log.e(TAG, "Error clearing discount", throwable);
+                                    isLoading.setValue(false);
+                                }
+                        )
+        );
     }
 
     public MutableLiveData<Boolean> getIsLoading() {

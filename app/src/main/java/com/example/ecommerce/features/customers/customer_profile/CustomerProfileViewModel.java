@@ -6,11 +6,14 @@ import androidx.lifecycle.ViewModel;
 import com.example.ecommerce.model.Customer;
 import com.example.ecommerce.repository.ICustomerRepository;
 
+import io.reactivex.rxjava3.disposables.CompositeDisposable;
+
 public class CustomerProfileViewModel extends ViewModel {
     private final ICustomerRepository customerRepository;
     private MutableLiveData<Customer> customer = new MutableLiveData<>();
     private MutableLiveData<Boolean> isCurrentCustomer = new MutableLiveData<>();
     private MutableLiveData<Double> totalOutstandingBalance = new MutableLiveData<>();
+    private final CompositeDisposable compositeDisposable = new CompositeDisposable();
 
     public CustomerProfileViewModel(ICustomerRepository customerRepository) {
         this.customerRepository = customerRepository;
@@ -25,12 +28,18 @@ public class CustomerProfileViewModel extends ViewModel {
     }
 
     public void setIsCurrentCustomer(boolean isCurrentCustomer) {
-        Customer currentCustomer = customerRepository.getCurrentCustomerHandler();
-        if (currentCustomer != null && currentCustomer.getCustomerId() == customer.getValue().getCustomerId()) {
-            this.isCurrentCustomer.setValue(true);
-        } else {
-            this.isCurrentCustomer.setValue(false);
-        }
+        compositeDisposable.add(
+                customerRepository.getCurrentCustomerHandler()
+                        .subscribe(currentCustomer -> {
+                            if (currentCustomer != null && currentCustomer.getCustomerId() == customer.getValue().getCustomerId()) {
+                                this.isCurrentCustomer.setValue(true);
+                            } else {
+                                this.isCurrentCustomer.setValue(false);
+                            }
+                        }, throwable -> {
+                            this.isCurrentCustomer.setValue(false);
+                        })
+        );
     }
 
     public void setTotalOutstandingBalance() {
