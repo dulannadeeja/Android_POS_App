@@ -156,6 +156,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             }
         });
 
+
+
         cartViewModel.getCart().observe(this, cart -> {
             toolbarTvCartItemCount.setText(String.valueOf(cart.getTotalItems()));
             if (cart.getCartItems().isEmpty()) {
@@ -168,44 +170,17 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     openOrdersFragment.show(getSupportFragmentManager(), OpenOrdersFragment.TAG);
                 });
             } else {
-
-                Cart cartToSave = cartViewModel.getCart().getValue();
-                Customer customer = customerViewModel.getCustomer().getValue();
-
                 binding.chargeButton.setEnabled(true);
                 binding.chargeButton.setText("CHARGE " + cart.getCartTotalPrice());
-
                 if(cart.isOpenOrder() && cart.getOrderId() != 0){
                     binding.saveOrderButton.setText("UPDATE");
                     binding.saveOrderButton.setOnClickListener(v -> {
-                        orderViewModel.onUpdatePendingOrder(cartToSave, customer,
-                                ((isSuccess, message) -> {
-                                    if (isSuccess) {
-                                        Toast.makeText(this, "Order updated successfully", Toast.LENGTH_SHORT).show();
-                                        cartViewModel.onClearCart();
-                                        customerViewModel.onClearCurrentCustomer();
-                                        discountViewModel.onClearDiscount();
-                                    } else {
-                                        Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
-                                    }
-                                })
-                        );
+                        saveOrUpdateOrder(true);
                     });
                 }else{
                     binding.saveOrderButton.setText("SAVE");
                     binding.saveOrderButton.setOnClickListener(v -> {
-                        orderViewModel.onSavePendingOrder(cartToSave, customer,
-                                ((isSuccess, message) -> {
-                                    if (isSuccess) {
-                                        Toast.makeText(this, "Order saved successfully", Toast.LENGTH_SHORT).show();
-                                        cartViewModel.onClearCart();
-                                        customerViewModel.onClearCurrentCustomer();
-                                        discountViewModel.onClearDiscount();
-                                    } else {
-                                        Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
-                                    }
-                                })
-                        );
+                        saveOrUpdateOrder(false);
                     });
                 }
             }
@@ -273,5 +248,38 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     public static void openDrawer() {
         drawerLayout.openDrawer(GravityCompat.START);
+    }
+
+    private void saveOrUpdateOrder(Boolean isUpdate) {
+        Cart cartToSave = cartViewModel.getCart().getValue();
+        Customer customer = customerViewModel.getCustomer().getValue();
+
+        if(isUpdate){
+            orderViewModel.onUpdatePendingOrder(cartToSave, customer,
+                    ((isSuccess, message) -> {
+                        if (isSuccess) {
+                            Toast.makeText(this, "Order updated successfully", Toast.LENGTH_SHORT).show();
+                            cartViewModel.onClearCart();
+                            customerViewModel.onClearCurrentCustomer();
+                            discountViewModel.onClearDiscount();
+                        } else {
+                            Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
+                        }
+                    })
+            );
+        }else{
+            orderViewModel.onSavePendingOrder(cartToSave, customer,
+                    ((isSuccess, message) -> {
+                        if (isSuccess) {
+                            Toast.makeText(this, "Order saved successfully", Toast.LENGTH_SHORT).show();
+                            cartViewModel.onClearCart();
+                            customerViewModel.onClearCurrentCustomer();
+                            discountViewModel.onClearDiscount();
+                        } else {
+                            Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
+                        }
+                    })
+            );
+        }
     }
 }
