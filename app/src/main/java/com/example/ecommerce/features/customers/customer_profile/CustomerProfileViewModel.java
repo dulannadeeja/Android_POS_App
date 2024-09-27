@@ -6,7 +6,12 @@ import androidx.lifecycle.ViewModel;
 import com.example.ecommerce.model.Customer;
 import com.example.ecommerce.repository.ICustomerRepository;
 
+import java.util.Objects;
+
+import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
+import io.reactivex.rxjava3.core.Scheduler;
 import io.reactivex.rxjava3.disposables.CompositeDisposable;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 
 public class CustomerProfileViewModel extends ViewModel {
     private final ICustomerRepository customerRepository;
@@ -27,7 +32,7 @@ public class CustomerProfileViewModel extends ViewModel {
         }
     }
 
-    public void setIsCurrentCustomer(boolean isCurrentCustomer) {
+    public void setIsCurrentCustomer() {
         compositeDisposable.add(
                 customerRepository.getCurrentCustomerHandler()
                         .subscribe(currentCustomer -> {
@@ -38,13 +43,23 @@ public class CustomerProfileViewModel extends ViewModel {
                             }
                         }, throwable -> {
                             this.isCurrentCustomer.setValue(false);
+                        }, () -> {
+                            this.isCurrentCustomer.setValue(false);
                         })
         );
     }
 
     public void setTotalOutstandingBalance() {
-        double totalOutstandingBalance = customerRepository.getCustomerOutstandingBalanceHandler(customer.getValue().getCustomerId());
-        this.totalOutstandingBalance.setValue(totalOutstandingBalance);
+        compositeDisposable.add(
+                customerRepository.getCustomerOutstandingBalanceHandler(Objects.requireNonNull(customer.getValue()).getCustomerId())
+                        .subscribeOn(Schedulers.io())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe(totalOutstandingBalance -> {
+                            this.totalOutstandingBalance.setValue(totalOutstandingBalance);
+                        }, throwable -> {
+                            this.totalOutstandingBalance.setValue(0.0);
+                        })
+        );
     }
 
     public MutableLiveData<Customer> getCustomer() {

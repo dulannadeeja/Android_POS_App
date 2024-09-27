@@ -63,7 +63,7 @@ public class CustomerProfileFragment extends DialogFragment {
         customerViewModel = new ViewModelProvider(requireActivity(), App.appModule.provideCustomerViewModelFactory()).get(CustomerViewModel.class);
 
         customerProfileViewModel.setCustomer(customer);
-        customerProfileViewModel.setIsCurrentCustomer(true);
+        customerProfileViewModel.setIsCurrentCustomer();
         customerProfileViewModel.setTotalOutstandingBalance();
 
         // Observe view model data

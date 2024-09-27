@@ -15,6 +15,6 @@ public interface ICustomerRepository {
     Completable setCurrentCustomerHandler(int customerId);
     Maybe<Customer> getCurrentCustomerHandler();
     Completable clearCurrentCustomerHandler();
-    double getCustomerOutstandingBalanceHandler(int customerId);
+    Single<Double> getCustomerOutstandingBalanceHandler(int customerId);
     Completable updateCustomerHandler(Customer customer);
 }
