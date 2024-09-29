@@ -1,7 +1,6 @@
 package com.example.ecommerce.utils;
 
 import android.annotation.SuppressLint;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,7 +14,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.ecommerce.R;
 import com.example.ecommerce.model.OpenOrderItem;
 import com.example.ecommerce.model.Order;
-import com.example.ecommerce.features.open_orders.OnOpenOrderClickListener;
+import com.example.ecommerce.features.order.open_orders.OnOpenOrderClickListener;
 import com.google.android.material.divider.MaterialDivider;
 
 

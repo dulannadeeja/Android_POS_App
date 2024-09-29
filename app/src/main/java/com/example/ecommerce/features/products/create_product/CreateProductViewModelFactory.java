@@ -1,4 +1,4 @@
-package com.example.ecommerce.features.create_product;
+package com.example.ecommerce.features.products.create_product;
 
 import androidx.annotation.NonNull;
 import androidx.lifecycle.ViewModel;

@@ -9,6 +9,7 @@ import com.example.ecommerce.model.Cart;
 import com.example.ecommerce.repository.ICartRepository;
 import com.example.ecommerce.repository.IDiscountRepository;
 import com.example.ecommerce.repository.IOrderRepository;
+import com.example.ecommerce.repository.IProductRepository;
 
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -22,15 +23,17 @@ import io.reactivex.rxjava3.schedulers.Schedulers;
 public class CartViewModel extends ViewModel {
     private final ICartRepository repository;
     private final IDiscountRepository discountRepository;
+    private final IProductRepository productRepository;
     private static final String TAG = "cartViewModel";
     private static final MutableLiveData<Boolean> isLoading = new MutableLiveData<>(false);
     private static final MutableLiveData<String> errorMessage = new MutableLiveData<>("");
     private static final MutableLiveData<Cart> cart = new MutableLiveData<>();
     private final CompositeDisposable compositeDisposable = new CompositeDisposable();
 
-    public CartViewModel(ICartRepository repository, IDiscountRepository discountRepository) {
+    public CartViewModel(ICartRepository repository, IDiscountRepository discountRepository, IProductRepository productRepository) {
         this.repository = repository;
         this.discountRepository = discountRepository;
+        this.productRepository = productRepository;
         onFetchCart();
     }
 
@@ -100,6 +103,7 @@ public class CartViewModel extends ViewModel {
 
         compositeDisposable.add(
                 repository.addProductToCart(productId)
+                        .andThen(productRepository.reduceProductQuantity(productId, 1))
                         .subscribeOn(Schedulers.io())
                         .observeOn(AndroidSchedulers.mainThread())
                         .subscribe(() -> {
@@ -120,6 +124,7 @@ public class CartViewModel extends ViewModel {
         isLoading.setValue(true);
         compositeDisposable.add(
                 repository.decrementProductQuantity(productId)
+                        .andThen(productRepository.increaseProductQuantity(productId, 1))
                         .subscribeOn(Schedulers.io())
                         .observeOn(AndroidSchedulers.mainThread())
                         .subscribe(() -> {
@@ -135,21 +140,33 @@ public class CartViewModel extends ViewModel {
         isLoading.setValue(false);
     }
 
-    public void onRemoveFromCart(int productId) {
+    public void onRemoveFromCart(int productId, OnCartOperationCompleted callback) {
         isLoading.setValue(true);
         compositeDisposable.add(
                 repository.removeProductFromCart(productId)
+                        .andThen(addItemQuantityFromCartToStock(productId))
                         .subscribeOn(Schedulers.io())
                         .observeOn(AndroidSchedulers.mainThread())
                         .subscribe(() -> {
+                            callback.onSuccessfulCartOperation();
                             onFetchCart();
                             errorMessage.setValue("");
                         }, throwable -> {
                             Log.e(TAG, "Error removing product from cart", throwable);
                             errorMessage.setValue("Error removing product from cart");
+                            callback.onFailedCartOperation("Error removing product from cart");
                         }));
         errorMessage.setValue("");
         isLoading.setValue(false);
+    }
+
+    public Completable addItemQuantityFromCartToStock(int productId) {
+        int qtyInCart = 0;
+        qtyInCart = cart.getValue().getCartItems().stream()
+                .filter(cartItem -> cartItem.getProductId() == productId)
+                .map(cartItem -> cartItem.getQuantity())
+                .findFirst().orElse(0);
+        return productRepository.increaseProductQuantity(productId, qtyInCart);
     }
 
     public void onClearCart() {

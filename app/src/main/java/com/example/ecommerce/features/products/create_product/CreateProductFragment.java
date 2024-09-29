@@ -1,4 +1,4 @@
-package com.example.ecommerce.features.create_product;
+package com.example.ecommerce.features.products.create_product;
 
 import android.net.Uri;
 import android.os.Bundle;
@@ -13,7 +13,6 @@ import androidx.lifecycle.ViewModelProvider;
 
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;

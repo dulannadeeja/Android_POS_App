@@ -24,12 +24,19 @@ import com.example.ecommerce.databinding.FragmentProductsBinding;
 import com.example.ecommerce.utils.ProductsAdapter;
 
 import java.util.ArrayList;
+import java.util.Objects;
+
+import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
+import io.reactivex.rxjava3.disposables.CompositeDisposable;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 
 public class ProductsFragment extends Fragment implements OnItemClickListener {
 
     private static final String TAG = "ProductsFragment";
     private ProductsViewModel productsViewModel;
     private CartViewModel cartViewModel;
+    private ProductsAdapter adapter;
+    private CompositeDisposable compositeDisposable = new CompositeDisposable();
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -53,12 +60,12 @@ public class ProductsFragment extends Fragment implements OnItemClickListener {
         productsViewModel.setCustomer();
 
         // Initialize CartViewModel with repository
-        cartViewModel = new ViewModelProvider(this, App.appModule.provideCartViewModelFactory()).get(CartViewModel.class);
+        cartViewModel = new ViewModelProvider(requireActivity(), App.appModule.provideCartViewModelFactory()).get(CartViewModel.class);
 
         // Initialize RecyclerView and Adapter
         RecyclerView productsRecyclerView = view.findViewById(R.id.products_recycler_view);
         productsRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-        ProductsAdapter adapter = new ProductsAdapter(this, getContext(), new ArrayList<Product>()); // Pass empty list initially
+        adapter = new ProductsAdapter(this, getContext(), new ArrayList<Product>(), productsViewModel); // Pass empty list initially
         productsRecyclerView.setAdapter(adapter);
 
         // Fetch data from the API
@@ -95,15 +102,13 @@ public class ProductsFragment extends Fragment implements OnItemClickListener {
                     adapter.setProducts(products);
                 });
 
+        // Observe cartViewModel LiveData
         cartViewModel.getCart().observe(getViewLifecycleOwner(), cart -> {
-            if (cart == null || cart.getCartItems() == null || cart.getCartItems().isEmpty()) {
-                adapter.clearProductQuantity();
-            } else {
-                ArrayList<CartItem> cartItems = cart.getCartItems();
-                cartItems.forEach(cartItem -> {
-                    adapter.setProductQuantity(cartItem.getProductId(), cartItem.getQuantity());
-                });
+            if (cart == null) {
+                return;
             }
+            productsViewModel.onSetQuantityAndStock(cart.getCartItems());
+            adapter.setProductQuantityAndStock();
         });
     }
 
@@ -131,13 +136,30 @@ public class ProductsFragment extends Fragment implements OnItemClickListener {
 
     @Override
     public void onItemLongClick(int productId) {
-        cartViewModel.onRemoveFromCart(productId);
+        cartViewModel.onRemoveFromCart(productId, new OnCartOperationCompleted() {
+            @Override
+            public void onSuccessfulCartOperation() {
+                Toast.makeText(getContext(), "Item removed from cart", Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onFailedCartOperation(String message) {
+                Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
+            }
+        });
+
     }
 
     @Override
     public void onProductInfoClick(Product product) {
         ProductInfoFragment productInfoFragment = ProductInfoFragment.newInstance(product);
         productInfoFragment.show(getParentFragmentManager(), "ProductInfoFragment");
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        compositeDisposable.clear();
     }
 
 }

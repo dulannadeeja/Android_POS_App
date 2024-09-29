@@ -6,7 +6,7 @@
     android:layout_height="wrap_content"
     android:orientation="vertical"
     android:layout_marginVertical="8dp"
-    tools:context=".features.open_orders.OpenOrderDateItemFragment">
+    tools:context=".features.order.open_orders.OpenOrderDateItemFragment">
 
     <com.google.android.material.divider.MaterialDivider
         android:id="@+id/top_divider"

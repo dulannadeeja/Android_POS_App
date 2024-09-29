@@ -1,4 +1,4 @@
-package com.example.ecommerce.features.open_orders;
+package com.example.ecommerce.features.order.open_orders;
 
 import com.example.ecommerce.model.Order;
 
