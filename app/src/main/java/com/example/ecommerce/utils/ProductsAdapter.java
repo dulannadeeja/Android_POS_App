@@ -66,6 +66,12 @@ public class ProductsAdapter extends RecyclerView.Adapter<ProductsAdapter.ViewHo
             holder.tvCartQuantity.setVisibility(View.GONE);
         }
 
+        if(products.get(position).getProductQuantity() <= 5){
+            holder.productInfo.setImageResource(R.drawable.baseline_info_outline_24_red);
+        }else{
+            holder.productInfo.setImageResource(R.drawable.baseline_info_outline_24);
+        }
+
         holder.bind(products.get(position), listener);
     }
 
