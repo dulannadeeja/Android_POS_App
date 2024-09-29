@@ -14,7 +14,7 @@ import com.example.ecommerce.MainActivity;
 import com.example.ecommerce.R;
 import com.example.ecommerce.databinding.FragmentProductInfoBinding;
 import com.example.ecommerce.model.Product;
-import com.example.ecommerce.features.create_product.CreateProductFragment;
+import com.example.ecommerce.features.products.create_product.CreateProductFragment;
 
 public class ProductInfoFragment extends DialogFragment {
 

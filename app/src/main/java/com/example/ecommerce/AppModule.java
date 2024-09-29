@@ -103,7 +103,7 @@ public class AppModule implements IAppModule {
         customerRepository = new CustomerRepository(customerDao, customerSharedPreferences, orderDao);
         productsViewModelFactory = new ProductsViewModelFactory(productRepository, customerRepository);
         createCustomerViewModelFactory = new CreateCustomerViewModelFactory(customerRepository);
-        cartViewModelFactory = new CartViewModelFactory(cartRepository, discountRepository);
+        cartViewModelFactory = new CartViewModelFactory(cartRepository, discountRepository, productRepository);
         checkoutViewModelFactory = new CheckoutViewModelFactory(cartRepository, paymentRepository, orderRepository);
         customerViewModelFactory = new CustomerViewModelFactory(application,customerRepository);
         orderViewModelFactory = new OrderViewModelFactory(orderRepository);

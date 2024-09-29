@@ -1,4 +1,4 @@
-package com.example.ecommerce.features.open_orders;
+package com.example.ecommerce.features.order.open_orders;
 
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -24,12 +24,9 @@ import com.example.ecommerce.model.Order;
 import com.example.ecommerce.features.cart.CartViewModel;
 import com.example.ecommerce.features.customers.CustomerViewModel;
 import com.example.ecommerce.features.discount.DiscountViewModel;
-import com.example.ecommerce.utils.OnCompletableFinishedCallback;
 import com.example.ecommerce.utils.OpenOrdersAdapter;
 
 import java.util.ArrayList;
-
-import io.reactivex.rxjava3.core.Completable;
 
 public class OpenOrdersFragment extends DialogFragment implements OnOpenOrderClickListener {
 

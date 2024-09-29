@@ -195,6 +195,6 @@ public class CartRepository implements ICartRepository {
     }
 
     public Single<Boolean> isProductHasStock(int qtyInCart, int productId) {
-        return Single.just(productDao.getProductQuantity(productId) > qtyInCart);
+        return Single.just(productDao.getProductQuantity(productId) > 0);
     }
 }

@@ -1,4 +1,4 @@
-package com.example.ecommerce.features.create_product;
+package com.example.ecommerce.features.products.create_product;
 
 import android.net.Uri;
 import android.util.Log;

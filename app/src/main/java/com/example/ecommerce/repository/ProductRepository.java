@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
 
 public class ProductRepository implements IProductRepository {
@@ -65,5 +66,29 @@ public class ProductRepository implements IProductRepository {
             Log.e(TAG, "Error getting filtered products", e);
             return new ArrayList<>();
         }
+    }
+
+    @Override
+    public Completable reduceProductQuantity(int productId, int byCount) {
+        return productDao.getProductById(productId)
+                .flatMapCompletable(product -> {
+                    if(product.getProductQuantity() - byCount >= 0) {
+                        return productDao.updateProductQuantity(productId, product.getProductQuantity() - byCount);
+                    } else {
+                        return Completable.error(new RuntimeException("Product out of stock"));
+                    }
+                });
+    }
+
+    @Override
+    public Completable increaseProductQuantity(int productId, int byCount) {
+        return productDao.getProductById(productId)
+                .flatMapCompletable(product -> productDao.updateProductQuantity(productId, product.getProductQuantity() + byCount));
+    }
+
+    @Override
+    public Single<Integer> getProductStock(int productId) {
+        return productDao.getProductById(productId)
+                .map(Product::getProductQuantity);
     }
 }

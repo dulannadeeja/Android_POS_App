@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
 import kotlin.Suppress;
 
@@ -191,5 +192,21 @@ public class ProductDao implements IProductDao {
             throw new RuntimeException("Error getting product quantity from product dao", e);
         }
         return 0;
+    }
+
+    @Override
+    public Completable updateProductQuantity(int productId, int quantity) {
+        return Completable.create(
+                emitter -> {
+                    try (SQLiteDatabase db = databaseHelper.getWritableDatabase()) {
+                        ContentValues values = new ContentValues();
+                        values.put(DatabaseHelper.COLUMN_PRODUCT_QUANTITY, quantity);
+                        db.update(DatabaseHelper.TABLE_PRODUCTS, values, DatabaseHelper.COLUMN_PRODUCT_ID + " = " + productId, null);
+                        emitter.onComplete();
+                    } catch (Exception e) {
+                        emitter.onError(e);
+                    }
+                }
+        );
     }
 }

@@ -1,19 +1,14 @@
 package com.example.ecommerce.features.cart;
 
 import android.os.Bundle;
-
-import androidx.activity.OnBackPressedCallback;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
-
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 import android.widget.Toast;
-
 import com.example.ecommerce.App;
 import com.example.ecommerce.MainActivity;
 import com.example.ecommerce.R;
@@ -59,7 +54,6 @@ public class CartFragment extends Fragment implements OnCartItemClickListener {
         toolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                // Navigate somewhere.
                 ((MainActivity) getActivity()).loadFragment(new ProductsFragment(), false);
             }
         });
@@ -102,7 +96,17 @@ public class CartFragment extends Fragment implements OnCartItemClickListener {
 
     @Override
     public void onCartItemLongClick(int cartItemId) {
-        cartViewModel.onRemoveFromCart(cartItemId);
+        cartViewModel.onRemoveFromCart(cartItemId, new OnCartOperationCompleted() {
+            @Override
+            public void onSuccessfulCartOperation() {
+                Toast.makeText(getContext(), "Item removed from cart", Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onFailedCartOperation(String message) {
+                Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     @Override
