@@ -25,6 +25,7 @@ import com.example.ecommerce.databinding.FragmentProductsBinding;
 import com.example.ecommerce.utils.ProductsAdapter;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Objects;
 
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
@@ -66,7 +67,7 @@ public class ProductsFragment extends Fragment implements OnItemClickListener {
         // Initialize RecyclerView and Adapter
         RecyclerView productsRecyclerView = view.findViewById(R.id.products_recycler_view);
         productsRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-        adapter = new ProductsAdapter(this, getContext(), new ArrayList<Product>(), productsViewModel); // Pass empty list initially
+        adapter = new ProductsAdapter(this, getContext(), new ArrayList<Product>()); // Pass empty list initially
         productsRecyclerView.setAdapter(adapter);
 
         // Fetch data from the API
@@ -109,8 +110,17 @@ public class ProductsFragment extends Fragment implements OnItemClickListener {
                 return;
             }
             Log.d(TAG, "Cart has been changed " + cart.getCartItems().size());
-            productsViewModel.onSetQuantityAndStock(cart.getCartItems(), cart.isOpenOrder());
-            adapter.setProductQuantityAndStock();
+            productsViewModel.onChangeCart(cart, new OnCartChangesAppliedCallback() {
+                @Override
+                public void onSuccessfulCartChanges(HashMap<Integer, Integer> updatedCartQuantityMap, HashMap<Integer, Integer> productStockMap, ArrayList<Integer> productIdsToUpdate) {
+                    adapter.onProductChange(updatedCartQuantityMap, productStockMap, productIdsToUpdate);
+                }
+
+                @Override
+                public void onFailedCartChanges(String errorMessage) {
+                    Toast.makeText(getContext(), errorMessage, Toast.LENGTH_SHORT).show();
+                }
+            });
         });
     }
 

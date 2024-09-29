@@ -29,13 +29,12 @@ public class ProductsAdapter extends RecyclerView.Adapter<ProductsAdapter.ViewHo
     private final OnItemClickListener listener;
     private final Context context;
     private ArrayList<Product> products = new ArrayList<Product>();
-    private final ProductsViewModel productsViewModel;
+    private HashMap<Integer, Integer> cartQuantityMap = new HashMap<>();
 
-    public ProductsAdapter(OnItemClickListener listener, Context context, ArrayList<Product> products, ProductsViewModel productsViewModel) {
+    public ProductsAdapter(OnItemClickListener listener, Context context, ArrayList<Product> products) {
         this.listener = listener;
         this.context = context;
         this.products = products;
-        this.productsViewModel = productsViewModel;
     }
 
     @NonNull
@@ -56,24 +55,18 @@ public class ProductsAdapter extends RecyclerView.Adapter<ProductsAdapter.ViewHo
         }
         holder.tvProductName.setText(products.get(position).getProductName());
         holder.tvProductPrice.setText(String.valueOf(products.get(position).getProductPrice()));
-        holder.bind(products.get(position), listener);
+        holder.tvProductQuantity.setText(String.valueOf(products.get(position).getProductQuantity()));
 
         int productId = products.get(position).get_productId();
-
-        if (productsViewModel.getCartQuantityMap().getValue().containsKey(productId) && productsViewModel.getCartQuantityMap().getValue().get(productId) > 0) {
-            int cartQuantity = productsViewModel.getCartQuantityMap().getValue().get(productId);
-            holder.tvCartQuantity.setText(String.valueOf(cartQuantity));
+        if (cartQuantityMap.containsKey(productId) && cartQuantityMap.get(productId) > 0) {
+            holder.tvCartQuantity.setText(String.valueOf(cartQuantityMap.get(productId)));
             holder.tvCartQuantity.setVisibility(View.VISIBLE);
         } else {
             holder.tvCartQuantity.setText("0");
             holder.tvCartQuantity.setVisibility(View.GONE);
         }
 
-        if(productsViewModel.getProductStockMap().getValue().containsKey(productId)) {
-            holder.tvProductQuantity.setText(String.valueOf(productsViewModel.getProductStockMap().getValue().get(productId)));
-        } else {
-            holder.tvProductQuantity.setText(String.valueOf(products.get(position).getProductQuantity()));
-        }
+        holder.bind(products.get(position), listener);
     }
 
     @Override
@@ -136,27 +129,43 @@ public class ProductsAdapter extends RecyclerView.Adapter<ProductsAdapter.ViewHo
         notifyDataSetChanged();
     }
 
-    public void setProductQuantityAndStock() {
-        Set<Integer> productIds = productsViewModel.getCartQuantityMap().getValue().keySet();
-
-        Log.d("ProductsAdapter", "setProductQuantityAndStock: " + productIds);
-
-        productsViewModel.getProductStockMap().getValue().keySet().forEach(key ->{
-            if (!productIds.contains(key)) {
-                productIds.add(key);
-            }
+    public void onProductChange(HashMap<Integer, Integer> updatedCartQuantityMap, HashMap<Integer, Integer> productStockMap, ArrayList<Integer> productIdsToUpdate) {
+        cartQuantityMap.clear();
+        cartQuantityMap.putAll(updatedCartQuantityMap);
+        productStockMap.forEach((productId, stock) -> {
+            products.stream()
+                    .filter(product -> product.get_productId() == productId)
+                    .forEach(product -> product.setProductQuantity(stock));
         });
-
-        Log.d("ProductsAdapter", "setProductQuantityAndStock: " + productIds);
-
-        productIds.forEach(productId ->{
+        productIdsToUpdate.forEach(productId -> {
             int position = getProductPosition(productId);
             if (position != -1) {
                 notifyItemChanged(position);
-                Log.d("ProductsAdapter", "Notifying item position: " + position);
             }
         });
     }
+
+//    public void setProductQuantityAndStock() {
+//        Set<Integer> productIds = productsViewModel.getCartQuantityMap().getValue().keySet();
+//
+//        Log.d("ProductsAdapter", "setProductQuantityAndStock: " + productIds);
+//
+//        productsViewModel.getProductStockMap().getValue().keySet().forEach(key ->{
+//            if (!productIds.contains(key)) {
+//                productIds.add(key);
+//            }
+//        });
+//
+//        Log.d("ProductsAdapter", "setProductQuantityAndStock: " + productIds);
+//
+//        productIds.forEach(productId ->{
+//            int position = getProductPosition(productId);
+//            if (position != -1) {
+//                notifyItemChanged(position);
+//                Log.d("ProductsAdapter", "Notifying item position: " + position);
+//            }
+//        });
+//    }
 
 //    public void productQuantityChangeListener(int productId, boolean isIncrement) {
 //        int currentQtyInCart = productQuantity.getOrDefault(productId, 0);
