@@ -1,8 +1,10 @@
 package com.example.ecommerce.dao;
 
 import android.annotation.SuppressLint;
+import android.content.ContentValues;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteTransactionListener;
 import android.util.Log;
 
 import com.example.ecommerce.model.Cart;
@@ -10,6 +12,7 @@ import com.example.ecommerce.model.CartItem;
 import com.example.ecommerce.utils.DatabaseHelper;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Maybe;
@@ -74,49 +77,132 @@ public class CartDao implements ICartDao {
     }
 
     @Override
-    public Completable createCartItem(int productId) {
+    public Completable createCartItem(int productId, int quantity, int newStock, Boolean doNotUpdateStock) {
         return Completable.fromAction(() -> {
+            SQLiteDatabase db = null;
             try {
-                SQLiteDatabase db = databaseHelper.getWritableDatabase();
-                db.execSQL("INSERT INTO " + DatabaseHelper.TABLE_CART_ITEMS + " (" + DatabaseHelper.COLUMN_PRODUCT_ID + ", " + DatabaseHelper.COLUMN_QUANTITY + ") VALUES (" + productId + ", 1)");
+                db = databaseHelper.getWritableDatabase();
+                db.beginTransaction();
+                Log.d("CartDao", "createCartItem: productId: " + productId + " quantity: " + quantity + " newStock: " + newStock);
+                db.execSQL("INSERT INTO " + DatabaseHelper.TABLE_CART_ITEMS + " (" + DatabaseHelper.COLUMN_PRODUCT_ID_CART_ITEMS + ", " + DatabaseHelper.COLUMN_QUANTITY_CART_ITEMS + ") VALUES (" + productId + ", " + quantity + ")");
+                if (!doNotUpdateStock) {
+                    Log.d("CartDao", "createCartItem: updating stock");
+                    ContentValues values = new ContentValues();
+                    values.put(DatabaseHelper.COLUMN_PRODUCT_QUANTITY, newStock);
+                    db.update(DatabaseHelper.TABLE_PRODUCTS, values, DatabaseHelper.COLUMN_PRODUCT_ID + " = " + productId, null);
+                    // retrieve the stock of the product
+                    Cursor cursor = db.rawQuery("SELECT " + DatabaseHelper.COLUMN_PRODUCT_QUANTITY + " FROM " + DatabaseHelper.TABLE_PRODUCTS + " WHERE " + DatabaseHelper.COLUMN_PRODUCT_ID + " = " + productId, null);
+                    cursor.moveToFirst();
+                    @SuppressLint("Range") int stock = cursor.getInt(cursor.getColumnIndex(DatabaseHelper.COLUMN_PRODUCT_QUANTITY));
+                    cursor.close();
+                    Log.d("CartDao", "Stock after created cartItem: " + stock);
+                }
+                db.setTransactionSuccessful();
             } catch (Exception e) {
                 throw new RuntimeException("Error creating cart item", e);
+            }finally {
+                if (db != null) {
+                    db.endTransaction();
+                }
             }
         });
     }
 
     @Override
-    public Completable deleteCartItem(int productId) {
+    public Completable deleteCartItem(int productId, int newStock) {
         return Completable.fromAction(() -> {
+            SQLiteDatabase db = null;
             try {
-                SQLiteDatabase db = databaseHelper.getWritableDatabase();
-                db.execSQL("DELETE FROM " + DatabaseHelper.TABLE_CART_ITEMS + " WHERE " + DatabaseHelper.COLUMN_PRODUCT_ID + " = " + productId);
+                db = databaseHelper.getWritableDatabase();
+                db.beginTransaction();
+                db.execSQL("DELETE FROM " + DatabaseHelper.TABLE_CART_ITEMS + " WHERE " + DatabaseHelper.COLUMN_PRODUCT_ID_CART_ITEMS + " = " + productId);
+                ContentValues values = new ContentValues();
+                values.put(DatabaseHelper.COLUMN_PRODUCT_QUANTITY, newStock);
+                db.update(DatabaseHelper.TABLE_PRODUCTS, values, DatabaseHelper.COLUMN_PRODUCT_ID + " = " + productId, null);
+                db.setTransactionSuccessful();
             } catch (Exception e) {
                 throw new RuntimeException("Error deleting cart item", e);
+            } finally {
+                if (db != null) {
+                    db.endTransaction();
+                }
             }
         });
     }
 
     @Override
-    public Completable updateCartItem(int productId, int quantity) {
+    public Completable updateCartItem(int productId, int updatedQuantity, int newStock) {
         return Completable.fromAction(() -> {
+            SQLiteDatabase db = null;
             try {
-                SQLiteDatabase db = databaseHelper.getWritableDatabase();
-                db.execSQL("UPDATE " + DatabaseHelper.TABLE_CART_ITEMS + " SET " + DatabaseHelper.COLUMN_QUANTITY + " = " + quantity + " WHERE " + DatabaseHelper.COLUMN_PRODUCT_ID + " = " + productId);
+
+                db = databaseHelper.getWritableDatabase();
+                db.beginTransaction();
+                Log.d("CartDao", "updateCartItem: productId: " + productId + " updatedQuantity: " + updatedQuantity + " newStock: " + newStock);
+                db.execSQL("UPDATE " + DatabaseHelper.TABLE_CART_ITEMS + " SET " + DatabaseHelper.COLUMN_QUANTITY_CART_ITEMS + " = " + updatedQuantity + " WHERE " + DatabaseHelper.COLUMN_PRODUCT_ID_CART_ITEMS + " = " + productId);
+                ContentValues values = new ContentValues();
+                values.put(DatabaseHelper.COLUMN_PRODUCT_QUANTITY, newStock);
+                db.update(DatabaseHelper.TABLE_PRODUCTS, values, DatabaseHelper.COLUMN_PRODUCT_ID + " = " + productId, null);
+                db.setTransactionSuccessful();
+
             } catch (Exception e) {
                 throw new RuntimeException("Error updating cart item", e);
+            }finally {
+                if (db != null) {
+                    db.endTransaction();
+                }
             }
         });
     }
 
     @Override
+    @SuppressLint("Range")
     public Completable clearCart() {
         return Completable.fromAction(() -> {
+            SQLiteDatabase db = null;
             try {
-                SQLiteDatabase db = databaseHelper.getWritableDatabase();
-                db.execSQL("DELETE FROM " + DatabaseHelper.TABLE_CART_ITEMS);
+                db = databaseHelper.getWritableDatabase();
+                db.beginTransaction();
+                SQLiteDatabase finalDb = db;
+
+                // join cart items and products tables to get the stock of each product
+                String query = "SELECT ci." + DatabaseHelper.COLUMN_PRODUCT_ID_CART_ITEMS + " AS cartProductId, " +
+                        "ci." + DatabaseHelper.COLUMN_QUANTITY_CART_ITEMS + " AS cartProductQuantity, " +
+                        "p." + DatabaseHelper.COLUMN_PRODUCT_QUANTITY + " AS productStock " +
+                        "FROM " + DatabaseHelper.TABLE_CART_ITEMS + " ci " +
+                        "JOIN " + DatabaseHelper.TABLE_PRODUCTS + " p " +
+                        "ON ci." + DatabaseHelper.COLUMN_PRODUCT_ID_CART_ITEMS + " = p." + DatabaseHelper.COLUMN_PRODUCT_ID;
+
+                Cursor cursor = finalDb.rawQuery(query, null);
+                HashMap<Integer, Integer> stockMap = new HashMap<>();
+                while (cursor.moveToNext()) {
+                     int productId = cursor.getInt(cursor.getColumnIndex("cartProductId"));
+                    int quantity = cursor.getInt(cursor.getColumnIndex("cartProductQuantity"));
+                    int stock = cursor.getInt(cursor.getColumnIndex("productStock"));
+                    Log.d("CartDao", "productId: " + productId + " quantity: " + quantity + " stock: " + stock);
+                    stockMap.put(productId, stock + quantity);
+                }
+                cursor.close();
+
+                stockMap.forEach((productId, stock) -> {
+                    finalDb.execSQL("DELETE FROM " + DatabaseHelper.TABLE_CART_ITEMS + " WHERE " + DatabaseHelper.COLUMN_PRODUCT_ID_CART_ITEMS + " = " + productId);
+                    ContentValues values = new ContentValues();
+                    values.put(DatabaseHelper.COLUMN_PRODUCT_QUANTITY, stock);
+                    finalDb.update(DatabaseHelper.TABLE_PRODUCTS, values, DatabaseHelper.COLUMN_PRODUCT_ID + " = " + productId, null);
+                    // retrieve the stock of the product
+                    Cursor productCursor = finalDb.rawQuery("SELECT " + DatabaseHelper.COLUMN_PRODUCT_QUANTITY + " FROM " + DatabaseHelper.TABLE_PRODUCTS + " WHERE " + DatabaseHelper.COLUMN_PRODUCT_ID + " = " + productId, null);
+                    productCursor.moveToFirst();
+                    @SuppressLint("Range") int newStock = productCursor.getInt(productCursor.getColumnIndex(DatabaseHelper.COLUMN_PRODUCT_QUANTITY));
+                    productCursor.close();
+                    Log.d("CartDao", "Stock after clearing cart: " + newStock);
+                });
+                db.setTransactionSuccessful();
             } catch (Exception e) {
                 throw new RuntimeException("Error clearing cart", e);
+            } finally {
+                if (db != null) {
+                    db.endTransaction();
+                }
             }
         });
     }

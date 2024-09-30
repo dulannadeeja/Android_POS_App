@@ -14,23 +14,16 @@ import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-
 import com.example.ecommerce.App;
-import com.example.ecommerce.model.CartItem;
 import com.example.ecommerce.features.cart.OnCartOperationCompleted;
 import com.example.ecommerce.model.Product;
 import com.example.ecommerce.features.cart.CartViewModel;
 import com.example.ecommerce.R;
 import com.example.ecommerce.databinding.FragmentProductsBinding;
 import com.example.ecommerce.utils.ProductsAdapter;
-
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Objects;
-
-import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
 import io.reactivex.rxjava3.disposables.CompositeDisposable;
-import io.reactivex.rxjava3.schedulers.Schedulers;
 
 public class ProductsFragment extends Fragment implements OnItemClickListener {
 
@@ -118,7 +111,6 @@ public class ProductsFragment extends Fragment implements OnItemClickListener {
 
                 @Override
                 public void onFailedCartChanges(String errorMessage) {
-                    Toast.makeText(getContext(), errorMessage, Toast.LENGTH_SHORT).show();
                 }
             });
         });

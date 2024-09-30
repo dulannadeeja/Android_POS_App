@@ -151,62 +151,6 @@ public class ProductsAdapter extends RecyclerView.Adapter<ProductsAdapter.ViewHo
         });
     }
 
-//    public void setProductQuantityAndStock() {
-//        Set<Integer> productIds = productsViewModel.getCartQuantityMap().getValue().keySet();
-//
-//        Log.d("ProductsAdapter", "setProductQuantityAndStock: " + productIds);
-//
-//        productsViewModel.getProductStockMap().getValue().keySet().forEach(key ->{
-//            if (!productIds.contains(key)) {
-//                productIds.add(key);
-//            }
-//        });
-//
-//        Log.d("ProductsAdapter", "setProductQuantityAndStock: " + productIds);
-//
-//        productIds.forEach(productId ->{
-//            int position = getProductPosition(productId);
-//            if (position != -1) {
-//                notifyItemChanged(position);
-//                Log.d("ProductsAdapter", "Notifying item position: " + position);
-//            }
-//        });
-//    }
-
-//    public void productQuantityChangeListener(int productId, boolean isIncrement) {
-//        int currentQtyInCart = productQuantity.getOrDefault(productId, 0);
-//        int currentQtyInStock = getProductQuantityInStock(productId);
-//
-//        // Update the cart and stock quantities based on whether it's an increment or decrement
-//        int updatedQtyInCart = isIncrement ? currentQtyInCart + 1 : currentQtyInCart - 1;
-//        int updatedQtyInStock = isIncrement ? currentQtyInStock - 1 : currentQtyInStock + 1;
-//
-//        productQuantity.put(productId, updatedQtyInCart);
-//        updateProductQuantityInStock(productId, updatedQtyInStock);
-//
-//        // Find the position of the product and notify the adapter
-//        int productPosition = getProductPosition(productId);
-//        if (productPosition != -1) {
-//            notifyItemChanged(productPosition);
-//        }
-//    }
-//
-//    // Helper method to get the quantity of the product in stock
-//    private int getProductQuantityInStock(int productId) {
-//        return products.stream()
-//                .filter(product -> product.get_productId() == productId)
-//                .map(Product::getProductQuantity)
-//                .findFirst()
-//                .orElse(0);  // Default to 0 if product not found
-//    }
-//
-//    // Helper method to update the product quantity in stock
-//    private void updateProductQuantityInStock(int productId, int updatedQtyInStock) {
-//        products.stream()
-//                .filter(product -> product.get_productId() == productId)
-//                .forEach(product -> product.setProductQuantity(updatedQtyInStock));
-//    }
-
     // Helper method to get the position of the product in the list
     private int getProductPosition(int productId) {
         for (int i = 0; i < products.size(); i++) {
@@ -216,19 +160,4 @@ public class ProductsAdapter extends RecyclerView.Adapter<ProductsAdapter.ViewHo
         }
         return -1;  // Return -1 if product not found
     }
-
-//    public void moveFromCartToStock(int productId) {
-//
-//        int currentQtyInCart = productQuantity.getOrDefault(productId, 0);
-//        int currentQtyInStock = getProductQuantityInStock(productId);
-//
-//        int updatedQtyInStock = currentQtyInStock + currentQtyInCart;
-//        productQuantity.put(productId, 0);
-//        updateProductQuantityInStock(productId, updatedQtyInStock);
-//
-//        int productPosition = getProductPosition(productId);
-//        if (productPosition != -1) {
-//            notifyItemChanged(productPosition);
-//        }
-//    }
 }

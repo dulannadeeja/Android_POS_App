@@ -180,18 +180,22 @@ public class ProductDao implements IProductDao {
 
     @SuppressLint("Range")
     @Override
-    public int getProductQuantity(int productId) {
-        try (SQLiteDatabase db = databaseHelper.getReadableDatabase()) {
-            Cursor cursor = db.rawQuery("SELECT " + DatabaseHelper.COLUMN_PRODUCT_QUANTITY + " FROM " + DatabaseHelper.TABLE_PRODUCTS + " WHERE " + DatabaseHelper.COLUMN_PRODUCT_ID + " = " + productId, null);
-            if (cursor.moveToFirst()) {
-                int quantity = cursor.getInt(cursor.getColumnIndex(DatabaseHelper.COLUMN_PRODUCT_QUANTITY));
-                cursor.close();
-                return quantity;
-            }
-        } catch (Exception e) {
-            throw new RuntimeException("Error getting product quantity from product dao", e);
-        }
-        return 0;
+    public Single<Integer> getProductQuantity(int productId) {
+        return Single.create(
+                emitter -> {
+                    SQLiteDatabase db = databaseHelper.getReadableDatabase();
+                    try {
+                        Cursor cursor = db.rawQuery("SELECT " + DatabaseHelper.COLUMN_PRODUCT_QUANTITY + " FROM " + DatabaseHelper.TABLE_PRODUCTS + " WHERE " + DatabaseHelper.COLUMN_PRODUCT_ID + " = " + productId, null);
+                        if (cursor.moveToFirst()) {
+                            int quantity = cursor.getInt(cursor.getColumnIndex(DatabaseHelper.COLUMN_PRODUCT_QUANTITY));
+                            cursor.close();
+                            emitter.onSuccess(quantity);
+                        }
+                    } catch (Exception e) {
+                        emitter.onError(e);
+                    }
+                }
+        );
     }
 
     @Override

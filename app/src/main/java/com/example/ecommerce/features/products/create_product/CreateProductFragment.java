@@ -228,11 +228,18 @@ public class CreateProductFragment extends Fragment {
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-                if (s.toString().isEmpty()) {
-                    s = "-1";
+                // Validate input and handle potential exceptions
+                try {
+                    int productQuantity = Integer.parseInt(s.toString());
+                    // Check if the number is negative and set a default value if necessary
+                    if (productQuantity < 0) {
+                        productQuantity = 0;
+                    }
+                    createProductViewModel.applyUpdateToTheProduct("productQuantity", productQuantity);
+                } catch (NumberFormatException e) {
+                    // Handle invalid input (e.g., empty or non-numeric input)
+                    createProductViewModel.applyUpdateToTheProduct("productQuantity", -1);
                 }
-                // Handle text change
-                createProductViewModel.applyUpdateToTheProduct("productQuantity", Integer.parseInt(s.toString()));
             }
 
             @Override

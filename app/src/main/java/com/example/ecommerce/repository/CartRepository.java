@@ -3,6 +3,8 @@ package com.example.ecommerce.repository;
 import android.content.SharedPreferences;
 import android.util.Log;
 
+import androidx.core.util.Pair;
+
 import com.example.ecommerce.dao.CartDao;
 import com.example.ecommerce.dao.ICartDao;
 import com.example.ecommerce.dao.IProductDao;
@@ -10,6 +12,8 @@ import com.example.ecommerce.model.Cart;
 import com.example.ecommerce.model.CartItem;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.stream.Collectors;
 
 import io.reactivex.rxjava3.core.Completable;
@@ -53,73 +57,83 @@ public class CartRepository implements ICartRepository {
     }
 
     @Override
-    public Completable saveCartHandler(Cart cart) {
+    public Completable saveCartHandler(Cart cart, Boolean isOpenOrder) {
         return cartDao.clearCart()
-                .andThen(clearCartOnSharedPreferences())
-                .andThen(Single.just(cart))
-                .flatMapCompletable(cart1 -> {
-                    ArrayList<CartItem> cartItems = cart1.getCartItems();
-                    return Completable.merge(cartItems.stream()
-                                    .map(cartItem -> cartDao.createCartItem(cartItem.getProductId())
-                                            .andThen(cartDao.updateCartItem(cartItem.getProductId(), cartItem.getQuantity())))
-                                    .collect(Collectors.toList()))
-                            .andThen(saveCartOnSharedPreferences(cart1));
-                });
+                            .andThen(clearCartOnSharedPreferences())
+                            .andThen(Single.just(cart))
+                            .flatMapCompletable(cart1 -> {
+                                Log.d("CartRepository", "Saving cart");
+                                ArrayList<CartItem> cartItems = cart1.getCartItems();
+                                return Completable.merge(
+                                                cartItems
+                                                        .stream()
+                                                        .map(cartItem -> {
+                                                            return productDao.getProductQuantity(cartItem.getProductId())
+                                                                    .flatMapCompletable(productStock -> {
+                                                                        return cartDao.createCartItem(cartItem.getProductId(), cartItem.getQuantity(), productStock - cartItem.getQuantity(), isOpenOrder);
+                                                                    });
+                                                        })
+                                                        .collect(Collectors.toList()))
+                                        .andThen(saveCartOnSharedPreferences(cart1));
+                            });
     }
 
     @Override
     public Completable addProductToCart(int productId) {
-        return isProductInCart(productId)
-                .flatMapCompletable(isProductInCart -> {
-                    // If the product is in the cart, check stock and update quantity
-                    if (isProductInCart) {
-                        return cartDao.getCartItem(productId)
-                                .flatMapCompletable(cartItem -> {
-                                    return isProductHasStock(cartItem.getQuantity(), productId)
-                                            .flatMapCompletable(isProductHasStock -> {
-                                                if (isProductHasStock) {
-                                                    return cartDao.updateCartItem(productId, cartItem.getQuantity() + 1);
-                                                } else {
-                                                    return Completable.error(new Exception("Product out of stock"));
-                                                }
-                                            });
-                                });
-                    } else {
-                        // If the product is not in the cart, add it
-                        return isProductHasStock(1, productId)
-                                .flatMapCompletable(isProductHasStock -> {
-                                    if (isProductHasStock) {
-                                        return cartDao.createCartItem(productId);
+        return productDao.getProductQuantity(productId)
+                .flatMapCompletable(productStock -> {
+                    Log.d("CartRepository", "Product stock: " + productStock);
+                    if (productStock > 0) {
+                        return isProductInCart(productId)
+                                .flatMapCompletable(isProductInCart -> {
+                                    if(isProductInCart) {
+                                        Log.d("CartRepository", "Product already in cart");
+                                        return cartDao.getCartItem(productId)
+                                                .flatMapCompletable(cartItem -> {
+                                                    Log.d("CartRepository", "Updating cart item");
+                                                    return cartDao.updateCartItem(productId, cartItem.getQuantity() + 1, productStock - 1);
+                                                });
                                     } else {
-                                        return Completable.error(new Exception("Product out of stock"));
+                                        Log.d("CartRepository", "Adding product to cart");
+                                        return cartDao.createCartItem(productId, 1, productStock - 1, false);
                                     }
                                 });
+                    } else {
+                        return Completable.error(new Exception("Product out of stock"));
                     }
                 });
     }
 
     @Override
     public Completable removeProductFromCart(int productId) {
-        return cartDao.deleteCartItem(productId);
+        return productDao.getProductQuantity(productId)
+                .flatMapCompletable(productStock -> {
+                    return cartDao.getCartItem(productId)
+                            .flatMapCompletable(cartItem -> {
+                                return cartDao.deleteCartItem(productId, productStock + cartItem.getQuantity());
+                            });
+                });
     }
 
     @Override
     public Completable decrementProductQuantity(int productId) {
         return cartDao.getCartItem(productId)
                 .flatMapCompletable(cartItem -> {
-                    if (cartItem.getQuantity() > 1) {
-                        return cartDao.updateCartItem(productId, cartItem.getQuantity() - 1);
-                    } else {
-                        return removeProductFromCart(productId);
-                    }
+                    return productDao.getProductQuantity(productId)
+                            .flatMapCompletable(productStock -> {
+                                if (cartItem.getQuantity() > 1) {
+                                    return cartDao.updateCartItem(productId, cartItem.getQuantity() - 1, productStock + 1);
+                                } else {
+                                    return cartDao.deleteCartItem(productId, productStock + 1);
+                                }
+                            });
                 });
     }
 
     @Override
     public Completable clearCart() {
-        return cartDao.clearCart().andThen(
-                clearCartOnSharedPreferences()
-        );
+        return cartDao.clearCart()
+                .andThen(clearCartOnSharedPreferences());
     }
 
     @Override
@@ -133,7 +147,7 @@ public class CartRepository implements ICartRepository {
                             .withDiscount(discountId, discountValue)
                             .withCartItems(cart.getCartItems())
                             .build();
-                    return saveCartHandler(updatedCart);
+                    return saveCartHandler(updatedCart, false);
                 });
     }
 
@@ -148,7 +162,7 @@ public class CartRepository implements ICartRepository {
                             .withDiscount(0, 0)
                             .withCartItems(cart.getCartItems())
                             .build();
-                    return saveCartHandler(updatedCart);
+                    return saveCartHandler(updatedCart, false);
                 });
     }
 
@@ -192,9 +206,5 @@ public class CartRepository implements ICartRepository {
         return cartDao.getAllCartItems()
                 .map(cartItems -> cartItems.stream()
                         .anyMatch(cartItem -> cartItem.getProductId() == productId));
-    }
-
-    public Single<Boolean> isProductHasStock(int qtyInCart, int productId) {
-        return Single.just(productDao.getProductQuantity(productId) > 0);
     }
 }

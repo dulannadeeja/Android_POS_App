@@ -103,7 +103,6 @@ public class CartViewModel extends ViewModel {
 
         compositeDisposable.add(
                 repository.addProductToCart(productId)
-                        .andThen(productRepository.reduceProductQuantity(productId, 1))
                         .subscribeOn(Schedulers.io())
                         .observeOn(AndroidSchedulers.mainThread())
                         .subscribe(() -> {
@@ -124,7 +123,6 @@ public class CartViewModel extends ViewModel {
         isLoading.setValue(true);
         compositeDisposable.add(
                 repository.decrementProductQuantity(productId)
-                        .andThen(productRepository.increaseProductQuantity(productId, 1))
                         .subscribeOn(Schedulers.io())
                         .observeOn(AndroidSchedulers.mainThread())
                         .subscribe(() -> {
@@ -144,7 +142,6 @@ public class CartViewModel extends ViewModel {
         isLoading.setValue(true);
         compositeDisposable.add(
                 repository.removeProductFromCart(productId)
-                        .andThen(addItemQuantityFromCartToStock(productId))
                         .subscribeOn(Schedulers.io())
                         .observeOn(AndroidSchedulers.mainThread())
                         .subscribe(() -> {
@@ -189,7 +186,7 @@ public class CartViewModel extends ViewModel {
     public void onLoadOpenOrderToCart(Cart openOrderCart) {
         compositeDisposable.add(
                 repository.clearCart()  // First clear the cart
-                        .andThen(repository.saveCartHandler(openOrderCart))  // Then save the new cart
+                        .andThen(repository.saveCartHandler(openOrderCart, true))  // Then save the new cart
                         .subscribeOn(Schedulers.io())
                         .observeOn(AndroidSchedulers.mainThread())
                         .subscribe(() -> {

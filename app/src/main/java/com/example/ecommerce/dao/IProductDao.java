@@ -14,6 +14,6 @@ public interface IProductDao {
     ArrayList<Product> getAllProducts();
     Single<Product> getProductById(int productId);
     ArrayList<Product> filterProducts(String keyword);
-    int getProductQuantity(int productId);
+    Single<Integer> getProductQuantity(int productId);
     Completable updateProductQuantity(int productId, int quantity);
 }
