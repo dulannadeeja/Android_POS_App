@@ -200,7 +200,7 @@ public class CartDao implements ICartDao {
             } catch (Exception e) {
                 throw new RuntimeException("Error clearing cart", e);
             } finally {
-                if (db != null) {
+                if (db != null && db.inTransaction()) {
                     db.endTransaction();
                 }
             }

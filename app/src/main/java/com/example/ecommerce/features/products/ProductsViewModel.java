@@ -1,15 +1,18 @@
 package com.example.ecommerce.features.products;
 
 import android.util.Log;
+
 import androidx.core.util.Pair;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
+
 import com.example.ecommerce.model.Cart;
 import com.example.ecommerce.model.CartItem;
 import com.example.ecommerce.model.Customer;
 import com.example.ecommerce.model.Product;
 import com.example.ecommerce.repository.ICustomerRepository;
 import com.example.ecommerce.repository.IProductRepository;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -40,17 +43,20 @@ public class ProductsViewModel extends ViewModel {
     }
 
     public void setProducts() {
-        try {
-            isLoading.setValue(true);
-            products.setValue(repository.getAllProducts());
-            errorMessage.setValue("");
-        } catch (Exception e) {
-            Log.e(TAG, "Error fetching products", e);
-            errorMessage.setValue("Error fetching products");
-        } finally {
-            isLoading.setValue(false);
-        }
-
+        isLoading.setValue(true);
+        compositeDisposable.add(
+                repository.getAllProducts()
+                        .subscribeOn(Schedulers.io())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe(fetchedProducts -> {
+                            products.setValue(fetchedProducts);
+                            isLoading.setValue(false);
+                        }, throwable -> {
+                            Log.e(TAG, "Error fetching products", throwable);
+                            errorMessage.setValue("Error fetching products");
+                            isLoading.setValue(false);
+                        })
+        );
     }
 
     public void onChangeCart(Cart cart, OnCartChangesAppliedCallback callback) {
@@ -61,7 +67,7 @@ public class ProductsViewModel extends ViewModel {
         Objects.requireNonNull(cartQuantityMap.getValue()).forEach((productId, cartQuantity) -> {
             productIdsToUpdate.add(productId);
             // Add product IDs with 0 quantity to the cart quantity map
-            if(updatedCartItems.stream().noneMatch(cartItem -> cartItem.getProductId() == productId)) {
+            if (updatedCartItems.stream().noneMatch(cartItem -> cartItem.getProductId() == productId)) {
                 cartQuantityMap.getValue().put(productId, 0);
             }
         });
@@ -116,9 +122,24 @@ public class ProductsViewModel extends ViewModel {
 
     public void onFilterProducts(String keyword) {
         if (keyword.isEmpty()) {
-            products.setValue(repository.getAllProducts());
+            setProducts();
         } else {
-            products.setValue(repository.getFilteredProducts(keyword));
+            isLoading.setValue(true);
+            compositeDisposable.add(
+                    repository.getFilteredProducts(keyword)
+                            .subscribeOn(Schedulers.io())
+                            .observeOn(AndroidSchedulers.mainThread())
+                            .subscribe(fetchedProducts -> {
+                                        products.setValue(fetchedProducts);
+                                        isLoading.setValue(false);
+                                    },
+                                    throwable -> {
+                                        Log.e(TAG, "Error fetching filtered products", throwable);
+                                        errorMessage.setValue("Error fetching filtered products");
+                                        isLoading.setValue(false);
+                                    }
+
+                            ));
         }
     }
 

@@ -1,6 +1,7 @@
 package com.example.ecommerce.repository;
 
 import android.util.Log;
+
 import com.example.ecommerce.dao.IProductDao;
 import com.example.ecommerce.model.Product;
 
@@ -21,36 +22,23 @@ public class ProductRepository implements IProductRepository {
     }
 
     @Override
-    public void createProduct(Product product) {
-        try{
-            productDao.createProduct(product);
-        } catch (Exception e) {
-            Log.e(TAG, "Error creating product", e);
-        }
+    public Completable createProduct(Product product) {
+        return productDao.createProduct(product);
     }
 
     @Override
-    public void updateProduct(Product product) {
-        try{
-            productDao.updateProduct(product);
-        } catch (Exception e) {
-            Log.e(TAG, "Error updating product", e);
-        }
+    public Completable updateProduct(Product product) {
+        return productDao.updateProduct(product);
     }
 
     @Override
-    public void deleteProduct(Product product) {
-        // TODO: Implement delete product method here
+    public Completable deleteProduct(Product product) {
+        return productDao.deleteProduct(product);
     }
 
     @Override
-    public ArrayList<Product> getAllProducts() {
-        try {
-            return productDao.getAllProducts();
-        } catch (Exception e) {
-            Log.e(TAG, "Error getting all products", e);
-            return new ArrayList<>();
-        }
+    public Single<ArrayList<Product>> getAllProducts() {
+        return productDao.getAllProducts();
     }
 
     @Override
@@ -59,31 +47,8 @@ public class ProductRepository implements IProductRepository {
     }
 
     @Override
-    public ArrayList<Product> getFilteredProducts(String keyword) {
-        try {
-            return productDao.filterProducts(keyword);
-        } catch (Exception e) {
-            Log.e(TAG, "Error getting filtered products", e);
-            return new ArrayList<>();
-        }
-    }
-
-    @Override
-    public Completable reduceProductQuantity(int productId, int byCount) {
-        return productDao.getProductById(productId)
-                .flatMapCompletable(product -> {
-                    if(product.getProductQuantity() - byCount >= 0) {
-                        return productDao.updateProductQuantity(productId, product.getProductQuantity() - byCount);
-                    } else {
-                        return Completable.error(new RuntimeException("Product out of stock"));
-                    }
-                });
-    }
-
-    @Override
-    public Completable increaseProductQuantity(int productId, int byCount) {
-        return productDao.getProductById(productId)
-                .flatMapCompletable(product -> productDao.updateProductQuantity(productId, product.getProductQuantity() + byCount));
+    public Single<ArrayList<Product>> getFilteredProducts(String keyword) {
+        return productDao.filterProducts(keyword);
     }
 
     @Override

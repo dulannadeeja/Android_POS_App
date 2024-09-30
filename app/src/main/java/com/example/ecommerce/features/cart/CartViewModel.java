@@ -157,15 +157,6 @@ public class CartViewModel extends ViewModel {
         isLoading.setValue(false);
     }
 
-    public Completable addItemQuantityFromCartToStock(int productId) {
-        int qtyInCart = 0;
-        qtyInCart = cart.getValue().getCartItems().stream()
-                .filter(cartItem -> cartItem.getProductId() == productId)
-                .map(cartItem -> cartItem.getQuantity())
-                .findFirst().orElse(0);
-        return productRepository.increaseProductQuantity(productId, qtyInCart);
-    }
-
     public void onClearCart() {
         isLoading.setValue(true);
         compositeDisposable.add(

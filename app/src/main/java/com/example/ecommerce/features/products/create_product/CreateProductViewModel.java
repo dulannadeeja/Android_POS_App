@@ -11,6 +11,10 @@ import com.example.ecommerce.model.Product;
 import com.example.ecommerce.repository.IProductRepository;
 import com.example.ecommerce.utils.FileHelper;
 
+import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
+import io.reactivex.rxjava3.disposables.CompositeDisposable;
+import io.reactivex.rxjava3.schedulers.Schedulers;
+
 public class CreateProductViewModel extends ViewModel {
     String TAG = "CreateProductViewModel";
     IProductRepository repository;
@@ -24,6 +28,10 @@ public class CreateProductViewModel extends ViewModel {
     private MutableLiveData<String> productQuantityError = new MutableLiveData<>();
     private MutableLiveData<String> productBrandError = new MutableLiveData<>();
     private MutableLiveData<String> productCategoryError = new MutableLiveData<>();
+
+    private MutableLiveData<Boolean> isLoading = new MutableLiveData<>(false);
+
+    private CompositeDisposable compositeDisposable = new CompositeDisposable();
 
     public CreateProductViewModel(IProductRepository repository, Product product) {
         this.repository = repository;
@@ -223,37 +231,62 @@ public class CreateProductViewModel extends ViewModel {
     }
 
     public void deleteImage() {
-        try{
+        try {
             String imagePath = product.getValue().getProductImage();
             FileHelper.deleteImage(imagePath, "product_image");
-        } catch (Exception e){
+        } catch (Exception e) {
             Log.e(TAG, "Failed to delete image", e);
         }
     }
 
     public void createProduct(OnProductCreatedCallback callback) {
-        if (validateProduct()) {
-            try {
-                repository.createProduct(product.getValue());
-                // Reset the product to create a new one
-                product.setValue(new Product.ProductBuilder().buildProduct());
-                callback.onSuccessfulProductCreation();
-            } catch (Exception e) {
-                callback.onFailedProductCreation();
-                Log.e(TAG, "Error creating product", e);
+        isLoading.setValue(true);
+        try {
+            if (validateProduct()) {
+                compositeDisposable.add(
+                        repository.createProduct(product.getValue())
+                                .subscribeOn(Schedulers.io())
+                                .observeOn(AndroidSchedulers.mainThread())
+                                .subscribe(() -> {
+                                    isLoading.setValue(false);
+                                    callback.onSuccessfulProductCreation();
+                                    // Reset the product to create a new one
+                                    product.setValue(new Product.ProductBuilder().buildProduct());
+                                }, throwable -> {
+                                    isLoading.setValue(false);
+                                    callback.onFailedProductCreation();
+                                    Log.e(TAG, "Error creating product", throwable);
+                                }));
             }
+        } catch (Exception e) {
+            isLoading.setValue(false);
+            callback.onFailedProductCreation();
+            Log.e(TAG, "Error creating product", e);
         }
     }
 
     public void updateProduct(OnProductUpdatedCallback callback) {
-        if (validateProduct()) {
-            try {
-                repository.updateProduct(product.getValue());
-                callback.onProductUpdateSuccess();
-            } catch (Exception e) {
-                callback.onProductUpdateFailure();
-                Log.e(TAG, "Error updating product", e);
+        isLoading.setValue(true);
+        try{
+            if (validateProduct()) {
+                    compositeDisposable.add(
+                            repository.updateProduct(product.getValue())
+                                    .subscribeOn(Schedulers.io())
+                                    .observeOn(AndroidSchedulers.mainThread())
+                                    .subscribe(() -> {
+                                        callback.onProductUpdateSuccess();
+                                        isLoading.setValue(false);
+                                    }, throwable -> {
+                                        callback.onProductUpdateFailure();
+                                        Log.e(TAG, "Error updating product", throwable);
+                                        isLoading.setValue(false);
+                                    })
+                    );
             }
+        } catch (Exception e) {
+            callback.onProductUpdateFailure();
+            Log.e(TAG, "Error updating product", e);
+            isLoading.setValue(false);
         }
     }
 
@@ -302,6 +335,16 @@ public class CreateProductViewModel extends ViewModel {
 
     public MutableLiveData<Product> getProduct() {
         return product;
+    }
+
+    public MutableLiveData<Boolean> getIsLoading() {
+        return isLoading;
+    }
+
+    @Override
+    protected void onCleared() {
+        super.onCleared();
+        compositeDisposable.clear();
     }
 
 }
