@@ -14,6 +14,7 @@ import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+
 import com.example.ecommerce.App;
 import com.example.ecommerce.features.cart.OnCartOperationCompleted;
 import com.example.ecommerce.model.Product;
@@ -21,8 +22,10 @@ import com.example.ecommerce.features.cart.CartViewModel;
 import com.example.ecommerce.R;
 import com.example.ecommerce.databinding.FragmentProductsBinding;
 import com.example.ecommerce.utils.ProductsAdapter;
+
 import java.util.ArrayList;
 import java.util.HashMap;
+
 import io.reactivex.rxjava3.disposables.CompositeDisposable;
 
 public class ProductsFragment extends Fragment implements OnItemClickListener {
@@ -51,8 +54,6 @@ public class ProductsFragment extends Fragment implements OnItemClickListener {
 
         // Initialize ViewModel with repository
         productsViewModel = new ViewModelProvider(this, App.appModule.provideProductsViewModelFactory()).get(ProductsViewModel.class);
-
-        productsViewModel.setCustomer();
 
         // Initialize CartViewModel with repository
         cartViewModel = new ViewModelProvider(requireActivity(), App.appModule.provideCartViewModelFactory()).get(CartViewModel.class);
@@ -97,7 +98,7 @@ public class ProductsFragment extends Fragment implements OnItemClickListener {
                     adapter.setProducts(products);
                 });
 
-        // Observe cartViewModel LiveData
+        // Observe cart changes
         cartViewModel.getCart().observe(getViewLifecycleOwner(), cart -> {
             if (cart == null) {
                 return;
@@ -114,44 +115,53 @@ public class ProductsFragment extends Fragment implements OnItemClickListener {
                 }
             });
         });
-    }
 
-    @Override
-    public void onResume() {
-        super.onResume();
-        productsViewModel.setCustomer();
+        // Observe cart state changes
+        cartViewModel.getIsLoading().observe(getViewLifecycleOwner(), isLoading -> {
+            if (isLoading) {
+                // disable user interaction
+            } else {
+            }
+        });
     }
 
 
     @Override
     public void onItemClick(int productId) {
-        cartViewModel.onAddToCart(productId, new OnCartOperationCompleted() {
-            @Override
-            public void onSuccessfulCartOperation() {
-                Toast.makeText(getContext(), "Item added to cart", Toast.LENGTH_SHORT).show();
-            }
+        Boolean isProductViewModelLoading = productsViewModel.getIsLoading().getValue();
+        Boolean isCartViewModelLoading = cartViewModel.getIsLoading().getValue();
+        Log.d(TAG, "isProductViewModelLoading: " + isProductViewModelLoading);
+        Log.d(TAG, "isCartViewModelLoading: " + isCartViewModelLoading);
+        if (!Boolean.TRUE.equals(cartViewModel.getIsLoading().getValue()) && !Boolean.TRUE.equals(productsViewModel.getIsLoading().getValue())) {
+            cartViewModel.onAddToCart(productId, new OnCartOperationCompleted() {
+                @Override
+                public void onSuccessfulCartOperation() {
+                    Toast.makeText(getContext(), "Item added to cart", Toast.LENGTH_SHORT).show();
+                }
 
-            @Override
-            public void onFailedCartOperation(String message) {
-                Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
-            }
-        });
+                @Override
+                public void onFailedCartOperation(String message) {
+                    Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
+                }
+            });
+        }
     }
 
     @Override
     public void onItemLongClick(int productId) {
-        cartViewModel.onRemoveFromCart(productId, new OnCartOperationCompleted() {
-            @Override
-            public void onSuccessfulCartOperation() {
-                Toast.makeText(getContext(), "Item removed from cart", Toast.LENGTH_SHORT).show();
-            }
+        if (!Boolean.TRUE.equals(cartViewModel.getIsLoading().getValue()) && !Boolean.TRUE.equals(productsViewModel.getIsLoading().getValue())) {
+            cartViewModel.onRemoveFromCart(productId, new OnCartOperationCompleted() {
+                @Override
+                public void onSuccessfulCartOperation() {
+                    Toast.makeText(getContext(), "Item removed from cart", Toast.LENGTH_SHORT).show();
+                }
 
-            @Override
-            public void onFailedCartOperation(String message) {
-                Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
-            }
-        });
-
+                @Override
+                public void onFailedCartOperation(String message) {
+                    Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
+                }
+            });
+        }
     }
 
     @Override

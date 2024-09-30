@@ -13,6 +13,8 @@ import com.example.ecommerce.repository.IProductRepository;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Objects;
+
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
 import io.reactivex.rxjava3.core.Single;
 import io.reactivex.rxjava3.disposables.CompositeDisposable;
@@ -37,24 +39,6 @@ public class ProductsViewModel extends ViewModel {
         this.customerRepository = customerRepository;
     }
 
-    public void setCustomer() {
-        isLoading.setValue(true);
-        compositeDisposable.add(
-                customerRepository.getCurrentCustomerHandler()
-                        .subscribeOn(Schedulers.io())
-                        .observeOn(AndroidSchedulers.mainThread())
-                        .subscribe(customer -> {
-                            currentCustomer.setValue(customer != null ? customer : new Customer.CustomerBuilder().buildCustomer());
-                            errorMessage.setValue("");
-                            isLoading.setValue(false);
-                        }, throwable -> {
-                            Log.e(TAG, "Error fetching customer", throwable);
-                            errorMessage.setValue("Error fetching customer");
-                            isLoading.setValue(false);
-                        })
-        );
-    }
-
     public void setProducts() {
         try {
             isLoading.setValue(true);
@@ -74,7 +58,7 @@ public class ProductsViewModel extends ViewModel {
         ArrayList<Integer> productIdsToUpdate = new ArrayList<>();
 
         // Add all the product ids to the list from the current cart
-        cartQuantityMap.getValue().forEach((productId, cartQuantity) -> {
+        Objects.requireNonNull(cartQuantityMap.getValue()).forEach((productId, cartQuantity) -> {
             productIdsToUpdate.add(productId);
             // Add product IDs with 0 quantity to the cart quantity map
             if(updatedCartItems.stream().noneMatch(cartItem -> cartItem.getProductId() == productId)) {
@@ -148,17 +132,5 @@ public class ProductsViewModel extends ViewModel {
 
     public MutableLiveData<ArrayList<Product>> getProducts() {
         return products;
-    }
-
-    public MutableLiveData<Customer> getCurrentCustomer() {
-        return currentCustomer;
-    }
-
-    public MutableLiveData<HashMap<Integer, Integer>> getCartQuantityMap() {
-        return cartQuantityMap;
-    }
-
-    public MutableLiveData<HashMap<Integer, Integer>> getProductStockMap() {
-        return productStockMap;
     }
 }
