@@ -13,6 +13,7 @@ import androidx.core.view.GravityCompat;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
@@ -113,7 +114,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
 
         binding.chargeButton.setOnClickListener(v -> {
-            loadFragment(new CheckoutFragment(), true);
+            Cart cartToSave = cartViewModel.getCart().getValue();
+            Customer customer = customerViewModel.getCustomer().getValue();
+            int orderId = cartViewModel.getCart().getValue().getOrderId();
+            DialogFragment checkoutFragment = CheckoutFragment.newInstance(cartToSave, customer, orderId);
+            checkoutFragment.show(getSupportFragmentManager(), "CheckoutFragment");
         });
 
         // ------------------------------------ Load the default fragment ------------------------------------

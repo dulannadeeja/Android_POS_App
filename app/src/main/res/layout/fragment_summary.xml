@@ -79,7 +79,7 @@
                 android:orientation="vertical">
 
                 <TextView
-                    android:id="@+id/tv_charged_amount"
+                    android:id="@+id/tv_change_amount"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="599.39"
@@ -94,7 +94,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
-                    android:text="Charged"
+                    android:text="Change"
                     android:textAlignment="center"
                     android:textSize="18sp"
                     tools:layout_editor_absoluteX="32dp"

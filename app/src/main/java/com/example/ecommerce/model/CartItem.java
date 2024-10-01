@@ -1,6 +1,9 @@
 package com.example.ecommerce.model;
 
-public class CartItem {
+import android.os.Parcel;
+import android.os.Parcelable;
+
+public class CartItem implements Parcelable {
     private final Integer _cartItemId; // Optional, can be null
     private final int productId;
     private int quantity;
@@ -17,6 +20,32 @@ public class CartItem {
         this.productName = builder.productName;
         this.discount = builder.discount;
     }
+
+    // Parcelable constructor
+    protected CartItem(Parcel in) {
+        if (in.readByte() == 0) {
+            _cartItemId = null;
+        } else {
+            _cartItemId = in.readInt();
+        }
+        productId = in.readInt();
+        quantity = in.readInt();
+        price = in.readDouble();
+        productName = in.readString();
+        discount = in.readDouble();
+    }
+
+    public static final Creator<CartItem> CREATOR = new Creator<CartItem>() {
+        @Override
+        public CartItem createFromParcel(Parcel in) {
+            return new CartItem(in);
+        }
+
+        @Override
+        public CartItem[] newArray(int size) {
+            return new CartItem[size];
+        }
+    };
 
     // Getters
     public Integer getCartItemId() {
@@ -54,6 +83,27 @@ public class CartItem {
 
     public void setDiscount(double discount) {
         this.discount = discount;
+    }
+
+    // Parcelable implementation
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        if (_cartItemId == null) {
+            dest.writeByte((byte) 0);
+        } else {
+            dest.writeByte((byte) 1);
+            dest.writeInt(_cartItemId);
+        }
+        dest.writeInt(productId);
+        dest.writeInt(quantity);
+        dest.writeDouble(price);
+        dest.writeString(productName);
+        dest.writeDouble(discount);
     }
 
     // Static Builder class

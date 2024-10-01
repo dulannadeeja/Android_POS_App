@@ -4,17 +4,17 @@ import java.util.ArrayList;
 import java.util.Map;
 
 public class Order {
-    private final int _orderId;
+    private int _orderId;
     private final String orderDate;
     private final double orderTotal;
     private final int discountId;
     private final double discountAmount;
     private final double taxAndCharges;
     private final double subTotal;
-    private final double paidAmount;
-    private final double dueAmount;
+    private double paidAmount;
+    private double dueAmount;
     private final int customerId;
-    private final String orderStatus;
+    private String orderStatus;
     private final ArrayList<OrderItem> orderItems;
 
     private Order(OrderBuilder builder) {
@@ -87,6 +87,10 @@ public class Order {
 
     }
 
+    public void set_orderId(int _orderId) {
+        this._orderId = _orderId;
+    }
+
     public int get_orderId() {
         return _orderId;
     }
@@ -115,8 +119,16 @@ public class Order {
         return subTotal;
     }
 
+    public void setPaidAmount(double paidAmount) {
+        this.paidAmount = paidAmount;
+    }
+
     public double getPaidAmount() {
         return paidAmount;
+    }
+
+    public void setDueAmount(double dueAmount) {
+        this.dueAmount = dueAmount;
     }
 
     public double getDueAmount() {
@@ -125,6 +137,10 @@ public class Order {
 
     public int getCustomerId() {
         return customerId;
+    }
+
+    public void setOrderStatus(String orderStatus) {
+        this.orderStatus = orderStatus;
     }
 
     public String getOrderStatus() {

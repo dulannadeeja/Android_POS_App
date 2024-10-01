@@ -104,7 +104,7 @@ public class AppModule implements IAppModule {
         productsViewModelFactory = new ProductsViewModelFactory(productRepository, customerRepository);
         createCustomerViewModelFactory = new CreateCustomerViewModelFactory(customerRepository);
         cartViewModelFactory = new CartViewModelFactory(cartRepository, discountRepository, productRepository);
-        checkoutViewModelFactory = new CheckoutViewModelFactory(cartRepository, paymentRepository, orderRepository);
+        checkoutViewModelFactory = new CheckoutViewModelFactory(paymentRepository, orderRepository);
         customerViewModelFactory = new CustomerViewModelFactory(application,customerRepository);
         orderViewModelFactory = new OrderViewModelFactory(orderRepository);
     }

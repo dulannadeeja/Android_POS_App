@@ -1,10 +1,13 @@
 package com.example.ecommerce.model;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
 import androidx.annotation.NonNull;
 
 import java.util.ArrayList;
 
-public class Cart implements Cloneable{
+public class Cart implements Cloneable, Parcelable {
     private double cartSubTotalPrice;
     private double cartTotalTaxAndCharges;
     private double cartTotalPrice;
@@ -31,8 +34,54 @@ public class Cart implements Cloneable{
         this.totalItems = getCartTotalItems(cartItems);
     }
 
+    protected Cart(Parcel in) {
+        cartSubTotalPrice = in.readDouble();
+        cartTotalTaxAndCharges = in.readDouble();
+        cartTotalPrice = in.readDouble();
+        isOpenOrder = in.readByte() != 0;
+        orderId = in.readInt();
+        isDiscountApplied = in.readByte() != 0;
+        discountId = in.readInt();
+        discountValue = in.readDouble();
+        isCartEmpty = in.readByte() != 0;
+        cartItems = in.createTypedArrayList(CartItem.CREATOR); // Assuming CartItem is also Parcelable
+        totalItems = in.readInt();
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeDouble(cartSubTotalPrice);
+        dest.writeDouble(cartTotalTaxAndCharges);
+        dest.writeDouble(cartTotalPrice);
+        dest.writeByte((byte) (isOpenOrder ? 1 : 0));
+        dest.writeInt(orderId);
+        dest.writeByte((byte) (isDiscountApplied ? 1 : 0));
+        dest.writeInt(discountId);
+        dest.writeDouble(discountValue);
+        dest.writeByte((byte) (isCartEmpty ? 1 : 0));
+        dest.writeTypedList(cartItems);
+        dest.writeInt(totalItems);
+    }
+
+    public static final Creator<Cart> CREATOR = new Creator<Cart>() {
+        @Override
+        public Cart createFromParcel(Parcel in) {
+            return new Cart(in);
+        }
+
+        @Override
+        public Cart[] newArray(int size) {
+            return new Cart[size];
+        }
+    };
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
     private int getCartTotalItems(ArrayList<CartItem> cartItems) {
-        if(cartItems == null || cartItems.isEmpty()){
+        if (cartItems == null || cartItems.isEmpty()) {
             return 0;
         }
         return cartItems.stream().mapToInt(CartItem::getQuantity).sum();
@@ -51,34 +100,34 @@ public class Cart implements Cloneable{
         private double discountValue = 0;
         private ArrayList<CartItem> cartItems = new ArrayList<>();
 
-        public CartBuilder withCartSubTotalPrice(double cartSubTotalPrice){
+        public CartBuilder withCartSubTotalPrice(double cartSubTotalPrice) {
             this.cartSubTotalPrice = cartSubTotalPrice;
             return this;
         }
 
-        public CartBuilder withCartTotalTaxAndCharges(double cartTotalTaxAndCharges){
+        public CartBuilder withCartTotalTaxAndCharges(double cartTotalTaxAndCharges) {
             this.cartTotalTaxAndCharges = cartTotalTaxAndCharges;
             return this;
         }
 
-        public CartBuilder withOrderId(int orderId){
+        public CartBuilder withOrderId(int orderId) {
             this.orderId = orderId;
             return this;
         }
 
-        public CartBuilder withDiscount(int discountId, double discountValue){
+        public CartBuilder withDiscount(int discountId, double discountValue) {
             this.discountId = discountId;
             this.discountValue = discountValue;
             return this;
         }
 
-        public CartBuilder withCartItems(ArrayList<CartItem> cartItems){
+        public CartBuilder withCartItems(ArrayList<CartItem> cartItems) {
             this.cartItems = cartItems;
             return this;
         }
 
-        public Cart build(){
-            return new Cart(cartSubTotalPrice,cartTotalTaxAndCharges,orderId,discountId,discountValue,cartItems);
+        public Cart build() {
+            return new Cart(cartSubTotalPrice, cartTotalTaxAndCharges, orderId, discountId, discountValue, cartItems);
         }
     }
 

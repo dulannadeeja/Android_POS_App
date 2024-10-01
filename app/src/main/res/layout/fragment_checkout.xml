@@ -10,27 +10,66 @@
         android:id="@+id/appbar_checkout_layout"
         layout="@layout/appbar_checkout"/>
 
-    <TextView
-        android:id="@+id/tv_total_amount"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="120dp"
-        android:text="249.28"
-        android:textSize="25sp"
+    <LinearLayout
+        android:id="@+id/total_and_change_container"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/appbar_checkout_layout" />
-
-    <TextView
-        android:id="@+id/tv_total"
-        android:layout_width="wrap_content"
+        app:layout_constraintTop_toBottomOf="@+id/appbar_checkout_layout"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Total"
-        android:textSize="18sp"
-        app:layout_constraintEnd_toEndOf="@+id/tv_total_amount"
-        app:layout_constraintStart_toStartOf="@+id/tv_total_amount"
-        app:layout_constraintTop_toBottomOf="@+id/tv_total_amount"
-        tools:layout_editor_absoluteY="175dp" />
+        android:paddingVertical="60dp"
+        android:gravity="center_horizontal"
+        android:orientation="horizontal">
+        <LinearLayout
+            android:id="@+id/total_container"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center_horizontal">
+            <TextView
+                android:id="@+id/tv_total_amount"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="1000.00"
+                android:textSize="25sp" />
+            <TextView
+                android:textColor="@color/textColorSecondary"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Total"
+                android:textSize="18sp"
+                tools:layout_editor_absoluteY="175dp" />
+        </LinearLayout>
+        <View
+            android:id="@+id/divider"
+            android:layout_width="1dp"
+            android:layout_height="match_parent"
+            android:background="@color/textColorPrimary"
+            android:layout_marginHorizontal="40dp"
+            />
+
+        <LinearLayout
+            android:id="@+id/change_container"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center_horizontal">
+            >
+            <TextView
+                android:id="@+id/tv_change_amount"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="1000.00"
+                android:textSize="25sp" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Change"
+                android:textColor="@color/textColorSecondary"
+                android:textSize="18sp"
+                tools:layout_editor_absoluteY="175dp" />
+        </LinearLayout>
+    </LinearLayout>
 
 
     <LinearLayout
@@ -44,7 +83,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/tv_total">
+        app:layout_constraintTop_toBottomOf="@+id/total_and_change_container">
 
         <Button
             android:id="@+id/select_cash_button"
@@ -117,7 +156,7 @@
                 android:ems="10"
                 android:inputType="numberDecimal"
                 android:textAlignment="center"
-                android:hint="99.99"
+                android:hint="0.00"
                 tools:layout_editor_absoluteX="83dp"
                 tools:layout_editor_absoluteY="440dp" />
         </LinearLayout>

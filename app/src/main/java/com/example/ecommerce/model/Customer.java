@@ -1,6 +1,11 @@
 package com.example.ecommerce.model;
 
-public class Customer {
+import android.os.Parcel;
+import android.os.Parcelable;
+
+import androidx.annotation.NonNull;
+
+public class Customer implements Parcelable {
     private int customerId;
     private String firstName;
     private String lastName;
@@ -23,6 +28,50 @@ public class Customer {
         this.region = builder.region;
         this.gender = builder.gender;
         this.photo = builder.photo;
+    }
+
+    protected Customer(Parcel in) {
+        customerId = in.readInt();
+        firstName = in.readString();
+        lastName = in.readString();
+        email = in.readString();
+        phone = in.readString();
+        address = in.readString();
+        city = in.readString();
+        region = in.readString();
+        gender = in.readString();
+        photo = in.readString();
+    }
+
+    @Override
+    public void writeToParcel(@NonNull Parcel parcel, int i) {
+        parcel.writeInt(customerId);
+        parcel.writeString(firstName);
+        parcel.writeString(lastName);
+        parcel.writeString(email);
+        parcel.writeString(phone);
+        parcel.writeString(address);
+        parcel.writeString(city);
+        parcel.writeString(region);
+        parcel.writeString(gender);
+        parcel.writeString(photo);
+    }
+
+    public static final Creator<Customer> CREATOR = new Creator<Customer>() {
+        @Override
+        public Customer createFromParcel(Parcel in) {
+            return new Customer(in);
+        }
+
+        @Override
+        public Customer[] newArray(int size) {
+            return new Customer[size];
+        }
+    };
+
+    @Override
+    public int describeContents() {
+        return 0;
     }
 
     public static class CustomerBuilder {

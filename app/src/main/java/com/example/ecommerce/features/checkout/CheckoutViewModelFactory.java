@@ -9,12 +9,10 @@ import com.example.ecommerce.repository.IOrderRepository;
 import com.example.ecommerce.repository.IPaymentRepository;
 
 public class CheckoutViewModelFactory implements ViewModelProvider.Factory {
-    private final ICartRepository cartRepository;
     private final IPaymentRepository paymentRepository;
     private final IOrderRepository orderRepository;
 
-    public CheckoutViewModelFactory(ICartRepository cartRepository, IPaymentRepository paymentRepository, IOrderRepository orderRepository) {
-        this.cartRepository = cartRepository;
+    public CheckoutViewModelFactory(IPaymentRepository paymentRepository, IOrderRepository orderRepository) {
         this.paymentRepository = paymentRepository;
         this.orderRepository = orderRepository;
     }
@@ -23,7 +21,7 @@ public class CheckoutViewModelFactory implements ViewModelProvider.Factory {
     @Override
     public <T extends ViewModel> T create(@NonNull Class<T> modelClass) {
         if (modelClass.isAssignableFrom(CheckoutViewModel.class)) {
-            return (T) new CheckoutViewModel(cartRepository, paymentRepository, orderRepository);
+            return (T) new CheckoutViewModel(paymentRepository, orderRepository);
         }
         throw new IllegalArgumentException("Unknown ViewModel class");
     }

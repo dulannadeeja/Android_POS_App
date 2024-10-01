@@ -18,6 +18,7 @@ import com.example.ecommerce.utils.DateHelper;
 import java.util.ArrayList;
 
 import io.reactivex.rxjava3.core.Completable;
+import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Single;
 
 public class OrderDao implements IOrderDao {
@@ -117,18 +118,20 @@ public class OrderDao implements IOrderDao {
                         // Delete all order items related to the order
                         database.delete(DatabaseHelper.TABLE_ORDER_ITEMS, DatabaseHelper.COLUMN_ORDER_ID_ORDER_ITEMS + " = " + order.get_orderId(), null);
 
-                        // Insert each order item related to the created order
-                        for (OrderItem orderItem : order.getOrderItems()) {
-                            // Prepare values for the order item
-                            ContentValues orderItemValues = new ContentValues();
-                            orderItemValues.put(DatabaseHelper.COLUMN_ORDER_ID_ORDER_ITEMS, order.get_orderId()); // Use the created order ID
-                            orderItemValues.put(DatabaseHelper.COLUMN_PRODUCT_ID_ORDER_ITEMS, orderItem.getProductId());
-                            orderItemValues.put(DatabaseHelper.COLUMN_QUANTITY, orderItem.getQuantity());
+                        if(order.getOrderItems() != null && !order.getOrderItems().isEmpty()){
+                            // Insert each order item related to the created order
+                            for (OrderItem orderItem : order.getOrderItems()) {
+                                // Prepare values for the order item
+                                ContentValues orderItemValues = new ContentValues();
+                                orderItemValues.put(DatabaseHelper.COLUMN_ORDER_ID_ORDER_ITEMS, order.get_orderId()); // Use the created order ID
+                                orderItemValues.put(DatabaseHelper.COLUMN_PRODUCT_ID_ORDER_ITEMS, orderItem.getProductId());
+                                orderItemValues.put(DatabaseHelper.COLUMN_QUANTITY, orderItem.getQuantity());
 
-                            // Insert the order item
-                            database.insertOrThrow(DatabaseHelper.TABLE_ORDER_ITEMS, null, orderItemValues);
+                                // Insert the order item
+                                database.insertOrThrow(DatabaseHelper.TABLE_ORDER_ITEMS, null, orderItemValues);
 
-                            Log.d("OrderDao", "order item saved to database - " + "Order ID: " + order.get_orderId() + "Product ID: " + orderItem.getProductId());
+                                Log.d("OrderDao", "order item saved to database - " + "Order ID: " + order.get_orderId() + "Product ID: " + orderItem.getProductId());
+                            }
                         }
 
                         database.setTransactionSuccessful();
@@ -145,31 +148,42 @@ public class OrderDao implements IOrderDao {
 
     @SuppressLint("Range")
     @Override
-    public Single<Order> getOrderById(int orderId) {
-        return Single.create(
-                emitter -> {
-                    SQLiteDatabase database = databaseHelper.getReadableDatabase();
-                    String query = "SELECT * FROM " + DatabaseHelper.TABLE_ORDERS + " WHERE " + DatabaseHelper.COLUMN_ORDER_ID + " = " + orderId;
-                    Cursor cursor = database.rawQuery(query, null);
-                    Order order = null;
-                    if (cursor.moveToFirst()) {
-                        order = new Order.OrderBuilder(
-                                cursor.getString(cursor.getColumnIndex(DatabaseHelper.COLUMN_ORDER_DATE)),
-                                cursor.getDouble(cursor.getColumnIndex(DatabaseHelper.COLUMN_ORDER_TOTAL)),
-                                cursor.getString(cursor.getColumnIndex(DatabaseHelper.COLUMN_ORDER_STATUS)),
-                                cursor.getDouble(cursor.getColumnIndex(DatabaseHelper.COLUMN_ORDER_TAX_AND_CHARGES)),
-                                cursor.getDouble(cursor.getColumnIndex(DatabaseHelper.COLUMN_ORDER_SUB_TOTAL)))
-                                .withOrderId(cursor.getInt(cursor.getColumnIndex(DatabaseHelper.COLUMN_ORDER_ID)))
-                                .withDiscount(cursor.getInt(cursor.getColumnIndex(DatabaseHelper.COLUMN_ORDER_DISCOUNT_ID)), cursor.getDouble(cursor.getColumnIndex(DatabaseHelper.COLUMN_ORDER_DISCOUNT_AMOUNT)))
-                                .withPayment(cursor.getDouble(cursor.getColumnIndex(DatabaseHelper.COLUMN_ORDER_PAID_AMOUNT)), cursor.getDouble(cursor.getColumnIndex(DatabaseHelper.COLUMN_ORDER_DUE_AMOUNT)))
-                                .withCustomerId(cursor.getInt(cursor.getColumnIndex(DatabaseHelper.COLUMN_ORDER_CUSTOMER_ID)))
-                                .build();
-                    }
-                    cursor.close();
+    public Maybe<Order> getOrderById(int orderId) {
+        return Maybe.create(emitter -> {
+            SQLiteDatabase database = null;
+            Cursor cursor = null;
+            try {
+                database = databaseHelper.getReadableDatabase();
+                String query = "SELECT * FROM " + DatabaseHelper.TABLE_ORDERS + " WHERE " + DatabaseHelper.COLUMN_ORDER_ID + " = ?";
+                cursor = database.rawQuery(query, new String[]{String.valueOf(orderId)});
+
+                if (cursor != null && cursor.moveToFirst()) {
+                    Order order = new Order.OrderBuilder(
+                            cursor.getString(cursor.getColumnIndex(DatabaseHelper.COLUMN_ORDER_DATE)),
+                            cursor.getDouble(cursor.getColumnIndex(DatabaseHelper.COLUMN_ORDER_TOTAL)),
+                            cursor.getString(cursor.getColumnIndex(DatabaseHelper.COLUMN_ORDER_STATUS)),
+                            cursor.getDouble(cursor.getColumnIndex(DatabaseHelper.COLUMN_ORDER_TAX_AND_CHARGES)),
+                            cursor.getDouble(cursor.getColumnIndex(DatabaseHelper.COLUMN_ORDER_SUB_TOTAL)))
+                            .withOrderId(cursor.getInt(cursor.getColumnIndex(DatabaseHelper.COLUMN_ORDER_ID)))
+                            .withDiscount(cursor.getInt(cursor.getColumnIndex(DatabaseHelper.COLUMN_ORDER_DISCOUNT_ID)), cursor.getDouble(cursor.getColumnIndex(DatabaseHelper.COLUMN_ORDER_DISCOUNT_AMOUNT)))
+                            .withPayment(cursor.getDouble(cursor.getColumnIndex(DatabaseHelper.COLUMN_ORDER_PAID_AMOUNT)), cursor.getDouble(cursor.getColumnIndex(DatabaseHelper.COLUMN_ORDER_DUE_AMOUNT)))
+                            .withCustomerId(cursor.getInt(cursor.getColumnIndex(DatabaseHelper.COLUMN_ORDER_CUSTOMER_ID)))
+                            .build();
+
                     emitter.onSuccess(order);
+                } else {
+                    emitter.onComplete();
                 }
-        );
+            } catch (Exception e) {
+                emitter.onError(e); // Emit an error if any exception occurs
+            } finally {
+                if (cursor != null) {
+                    cursor.close();
+                }
+            }
+        });
     }
+
 
     @SuppressLint("Range")
     @Override
