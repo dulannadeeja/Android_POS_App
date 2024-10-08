@@ -45,24 +45,6 @@ public class CheckoutViewModel extends ViewModel {
         this.orderRepository = orderRepository;
     }
 
-    // Common method to build an Order object from Cart and Customer
-    private Order buildOrder(Cart cartToSave, Customer customer, int orderId) {
-        return new Order.OrderBuilder(
-                DateHelper.getTimeStamp(),
-                cartToSave.getCartTotalPrice(),
-                OrderStatus.PENDING.getStatus(),
-                cartToSave.getCartTotalTaxAndCharges(),
-                cartToSave.getCartSubTotalPrice())
-                .withOrderId(Math.max(orderId, 0))
-                .withPayment(0, cartToSave.getCartTotalPrice())
-                .withCustomerId(customer.getCustomerId())
-                .withDiscount(cartToSave.getDiscountId(), cartToSave.getDiscountValue())
-                .withOrderItems(new ArrayList<>(cartToSave.getCartItems().stream().map(
-                        cartItem -> new OrderItem(0, cartItem.getProductId(), cartItem.getQuantity())
-                ).toList()))
-                .build();
-    }
-
     public void init(int orderId, Cart cartToSave, Customer customer, OnCompletableFinishedCallback callback) {
         if (orderId > 0) {
             compositeDisposable.add(orderRepository.getOrderById(orderId)
@@ -163,6 +145,24 @@ public class CheckoutViewModel extends ViewModel {
     public void setChangeAmount() {
         double changeAmount = this.payingAmount.getValue() - this.order.getValue().getDueAmount() > 0 ? this.payingAmount.getValue() - this.order.getValue().getDueAmount() : 0;
         this.changeAmount.setValue(changeAmount);
+    }
+
+    // Common method to build an Order object from Cart and Customer
+    private Order buildOrder(Cart cartToSave, Customer customer, int orderId) {
+        return new Order.OrderBuilder(
+                DateHelper.getTimeStamp(),
+                cartToSave.getCartTotalPrice(),
+                OrderStatus.PENDING.getStatus(),
+                cartToSave.getCartTotalTaxAndCharges(),
+                cartToSave.getCartSubTotalPrice())
+                .withOrderId(Math.max(orderId, 0))
+                .withPayment(0, cartToSave.getCartTotalPrice())
+                .withCustomerId(customer.getCustomerId())
+                .withDiscount(cartToSave.getDiscountId(), cartToSave.getDiscountValue())
+                .withOrderItems(new ArrayList<>(cartToSave.getCartItems().stream().map(
+                        cartItem -> new OrderItem(0, cartItem.getProductId(), cartItem.getQuantity())
+                ).toList()))
+                .build();
     }
 
 }

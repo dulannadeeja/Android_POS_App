@@ -55,18 +55,19 @@ public class PaymentDao implements IPaymentDao {
                 db = databaseHelper.getReadableDatabase();
                 ArrayList<Payment> payments = new ArrayList<>();
                 Cursor cursor = db.query(DatabaseHelper.TABLE_PAYMENTS, null, DatabaseHelper.COLUMN_PAYMENT_ORDER_ID + " = ?", new String[]{String.valueOf(orderId)}, null, null, null);
-                if(cursor == null) {
+                if (cursor == null) {
                     emitter.onComplete();
                     return;
                 }
                 while (cursor.moveToNext()) {
-                    Payment payment = new Payment(
-                            cursor.getString(cursor.getColumnIndex(DatabaseHelper.COLUMN_PAYMENT_METHOD)),
-                            cursor.getDouble(cursor.getColumnIndex(DatabaseHelper.COLUMN_PAYMENT_AMOUNT)),
-                            cursor.getString(cursor.getColumnIndex(DatabaseHelper.COLUMN_PAYMENT_DATE)),
-                            cursor.getInt(cursor.getColumnIndex(DatabaseHelper.COLUMN_PAYMENT_ORDER_ID))
-                    );
-                    payment.setPaymentId(cursor.getInt(cursor.getColumnIndex(DatabaseHelper.COLUMN_PAYMENT_ID)));
+                    Payment payment = new Payment.Builder()
+                            .withPaymentId(cursor.getInt(cursor.getColumnIndex(DatabaseHelper.COLUMN_PAYMENT_ID)))
+                            .withPaymentAmount(cursor.getDouble(cursor.getColumnIndex(DatabaseHelper.COLUMN_PAYMENT_AMOUNT)))
+                            .withPaymentMethod(cursor.getString(cursor.getColumnIndex(DatabaseHelper.COLUMN_PAYMENT_METHOD)))
+                            .withPaymentDate(cursor.getString(cursor.getColumnIndex(DatabaseHelper.COLUMN_PAYMENT_DATE)))
+                            .withOrderId(cursor.getInt(cursor.getColumnIndex(DatabaseHelper.COLUMN_PAYMENT_ORDER_ID)))
+                            .withIsPaid(true)
+                            .build();
                     payments.add(payment);
                 }
                 cursor.close();

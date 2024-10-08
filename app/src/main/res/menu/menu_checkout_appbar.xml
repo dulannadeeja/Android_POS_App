@@ -3,6 +3,10 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <item
+        android:id="@+id/split"
+        android:title="Split"
+        app:showAsAction="ifRoom" />
+    <item
         android:id="@+id/new_user"
         android:title="New user"
         android:icon="@drawable/baseline_person_add_alt_24"

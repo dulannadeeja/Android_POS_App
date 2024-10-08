@@ -20,7 +20,12 @@ public class PaymentRepository implements IPaymentRepository {
     @Override
     public Completable paymentHandler(String paymentMethod, double paymentAmount, int orderId) {
         String date = DateHelper.getTimeStamp();
-        Payment newPayment = new Payment(paymentMethod, paymentAmount, date, orderId);
+        Payment newPayment = new Payment.Builder()
+                .withPaymentMethod(paymentMethod)
+                .withPaymentAmount(paymentAmount)
+                .withPaymentDate(date)
+                .withOrderId(orderId)
+                .build();
         return paymentDao.createPayment(newPayment);
     }
 

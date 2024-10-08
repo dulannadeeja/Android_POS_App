@@ -1,5 +1,6 @@
 package com.example.ecommerce.features.checkout;
 
+import android.graphics.Color;
 import android.os.Bundle;
 
 import androidx.activity.OnBackPressedCallback;
@@ -11,9 +12,12 @@ import androidx.lifecycle.ViewModelProvider;
 
 import android.text.Editable;
 import android.text.InputType;
+import android.text.SpannableString;
 import android.text.TextWatcher;
+import android.text.style.ForegroundColorSpan;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
@@ -24,6 +28,7 @@ import com.example.ecommerce.MainActivity;
 import com.example.ecommerce.R;
 import com.example.ecommerce.databinding.FragmentCheckoutBinding;
 import com.example.ecommerce.features.cart.CartFragment;
+import com.example.ecommerce.features.checkout.split.SplitPaymentFragment;
 import com.example.ecommerce.features.summary.SummaryFragment;
 import com.example.ecommerce.model.Cart;
 import com.example.ecommerce.model.Customer;
@@ -90,25 +95,40 @@ public class CheckoutFragment extends DialogFragment {
 
         FragmentCheckoutBinding binding = FragmentCheckoutBinding.bind(view);
 
+        // Setup the toolbar
         MaterialToolbar toolbar = view.findViewById(R.id.checkout_toolbar);
         toolbar.inflateMenu(R.menu.menu_checkout_appbar);
         toolbar.setTitle("Payment");
         toolbar.setTitleTextColor(getResources().getColor(R.color.backgroundColor));
+
+        // Change text color for menu items
+        MenuItem splitItem = toolbar.getMenu().findItem(R.id.split);
+        SpannableString splitTitle = new SpannableString(splitItem.getTitle());
+        splitTitle.setSpan(new ForegroundColorSpan(Color.WHITE), 0, splitTitle.length(), 0);
+        splitItem.setTitle(splitTitle);
+
+        MenuItem newUserItem = toolbar.getMenu().findItem(R.id.new_user);
+        SpannableString newUserTitle = new SpannableString(newUserItem.getTitle());
+        newUserTitle.setSpan(new ForegroundColorSpan(Color.GREEN), 0, newUserTitle.length(), 0);
+        newUserItem.setTitle(newUserTitle);
+
+        // Handle menu item clicks
         toolbar.setOnMenuItemClickListener(item -> {
             if (item.getItemId() == R.id.new_user) {
                 Toast.makeText(getContext(), "New user clicked", Toast.LENGTH_SHORT).show();
+                return true;
+            } else if (item.getItemId() == R.id.split) {
+                SplitPaymentFragment splitPaymentFragment = SplitPaymentFragment.newInstance();
+                splitPaymentFragment.show(getChildFragmentManager(), SplitPaymentFragment.class.getSimpleName());
                 return true;
             } else {
                 return false;
             }
         });
+
+        // Set the navigation icon and listener
         toolbar.setNavigationIcon(R.drawable.baseline_arrow_back_24_white);
-        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                dismiss();
-            }
-        });
+        toolbar.setNavigationOnClickListener(view1 -> dismiss());
 
         // Initialize the checkout view model
         checkoutViewModel = new ViewModelProvider(this, App.appModule.provideCheckoutViewModelFactory()).get(CheckoutViewModel.class);

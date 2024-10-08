@@ -6,4 +6,9 @@
     <string name="close_nav">close drawer</string>
     <string name="dummy_button">Dummy Button</string>
     <string name="dummy_content">DUMMY\nCONTENT</string>
+
+    <string-array name="payment_methods">
+        <item>Card</item>
+        <item>Cash</item>
+    </string-array>
 </resources>
