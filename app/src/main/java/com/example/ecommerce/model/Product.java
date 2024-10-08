@@ -4,17 +4,46 @@ import android.os.Parcel;
 import android.os.Parcelable;
 
 import androidx.annotation.NonNull;
+import androidx.room.ColumnInfo;
+import androidx.room.Entity;
+import androidx.room.PrimaryKey;
 
+@Entity(tableName = "products")
 public class Product implements Parcelable {
+
+    // Empty constructor for Room
+    public Product() {
+    }
+
+    @PrimaryKey(autoGenerate = true)
+    @ColumnInfo(name = "product_id")
     private  int _productId;
+
+    @ColumnInfo(name = "product_name")
     private  String productName;
+
+    @ColumnInfo(name = "product_description")
     private  String productDescription;
+
+    @ColumnInfo(name = "product_price", typeAffinity = ColumnInfo.REAL)
     private  Double productPrice;
+
+    @ColumnInfo(name = "product_cost", typeAffinity = ColumnInfo.REAL)
     private  Double productCost;
+
+    @ColumnInfo(name = "product_image")
     private  String productImage;
+
+    @ColumnInfo(name = "product_discount", typeAffinity = ColumnInfo.REAL)
     private  Double productDiscount;
+
+    @ColumnInfo(name = "product_quantity", typeAffinity = ColumnInfo.INTEGER)
     private  Integer productQuantity;
+
+    @ColumnInfo(name = "product_brand")
     private  String productBrand;
+
+    @ColumnInfo(name = "product_category")
     private  String productCategory;
 
 

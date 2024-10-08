@@ -10,6 +10,7 @@ import com.example.ecommerce.dao.ICartDao;
 import com.example.ecommerce.dao.IProductDao;
 import com.example.ecommerce.model.Cart;
 import com.example.ecommerce.model.CartItem;
+import com.example.ecommerce.utils.RoomDBHelper;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -26,9 +27,9 @@ public class CartRepository implements ICartRepository {
     private IProductDao productDao;
     private SharedPreferences cartSharedPreferences;
 
-    public CartRepository(ICartDao cartDao, IProductDao productDao, SharedPreferences cartSharedPreferences) {
+    public CartRepository(ICartDao cartDao, RoomDBHelper database, SharedPreferences cartSharedPreferences) {
         this.cartDao = cartDao;
-        this.productDao = productDao;
+        this.productDao = database.productDao();
         this.cartSharedPreferences = cartSharedPreferences;
     }
 

@@ -128,7 +128,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         // ------------------------------------ Database usage ------------------------------------
         DatabaseHelper database = App.appModule.provideDatabaseHelper();
-//         database.onUpgrade(database.getWritableDatabase(), 1, 1);
+         database.onUpgrade(database.getWritableDatabase(), 1, 1);
 
 
         // ------------------------------------ Example of firebase database usage ------------------------------------

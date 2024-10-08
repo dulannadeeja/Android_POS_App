@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.google.gms.google.services)
+    id("com.google.devtools.ksp") version "1.9.0-1.0.12"  // Add KSP plugin
 }
 
 android {
@@ -40,15 +41,17 @@ dependencies {
     implementation(libs.material)
     implementation(libs.activity)
     implementation(libs.constraintlayout)
-    implementation(libs.firebase.database)
+    implementation(libs.firebase.database) // Firebase Realtime Database
     implementation(libs.legacy.support.v4)
-    implementation(libs.lifecycle.livedata.ktx)
-    implementation(libs.lifecycle.viewmodel.ktx)
+    implementation(libs.lifecycle.livedata.ktx) // LiveData
+    implementation(libs.lifecycle.viewmodel.ktx) // ViewModel
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
-    androidTestImplementation(libs.espresso.core)
-    implementation (libs.glide)
-    annotationProcessor (libs.compiler)
-    implementation(libs.rxandroid)
-    implementation(libs.rxjava)
+    androidTestImplementation(libs.espresso.core) // Espresso
+    implementation (libs.glide) // Glide
+    implementation(libs.rxandroid) // RxAndroid
+    implementation(libs.rxjava) // RxJava
+    implementation(libs.room.runtime) // Room runtime
+    implementation(libs.room.rxjava3) // Room RxJava support
+    annotationProcessor(libs.room.compiler)
 }

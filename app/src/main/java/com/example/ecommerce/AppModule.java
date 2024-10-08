@@ -14,10 +14,8 @@ import com.example.ecommerce.dao.ICustomerDao;
 import com.example.ecommerce.dao.IDiscountDao;
 import com.example.ecommerce.dao.IOrderDao;
 import com.example.ecommerce.dao.IPaymentDao;
-import com.example.ecommerce.dao.IProductDao;
 import com.example.ecommerce.dao.OrderDao;
 import com.example.ecommerce.dao.PaymentDao;
-import com.example.ecommerce.dao.ProductDao;
 import com.example.ecommerce.features.order.OrderViewModelFactory;
 import com.example.ecommerce.repository.CartRepository;
 import com.example.ecommerce.repository.CustomerRepository;
@@ -38,6 +36,7 @@ import com.example.ecommerce.features.customers.create_customer.CreateCustomerVi
 import com.example.ecommerce.features.discount.DiscountViewModelFactory;
 import com.example.ecommerce.features.products.ProductsViewModelFactory;
 import com.example.ecommerce.utils.DatabaseHelper;
+import com.example.ecommerce.utils.RoomDBHelper;
 
 interface IAppModule {
     Context provideAppContext();
@@ -58,7 +57,7 @@ public class AppModule implements IAppModule {
     private final Application application;
     private final Context appContext;
     private final DatabaseHelper databaseHelper;
-    private final IProductDao productDao;
+    private final RoomDBHelper roomDatabase;
     private final IProductRepository productRepository;
     private final ProductsViewModelFactory productsViewModelFactory;
     private final ICartDao cartDao;
@@ -88,12 +87,12 @@ public class AppModule implements IAppModule {
         discountSharedPreferences = appContext.getSharedPreferences("DiscountSharedPreferences", MODE_PRIVATE);
         cartSharedPreferences = appContext.getSharedPreferences("CartSharedPreferences", MODE_PRIVATE);
         databaseHelper = new DatabaseHelper(appContext);
-        productDao = new ProductDao(databaseHelper);
-        productRepository = new ProductRepository(productDao);
+        roomDatabase = RoomDBHelper.getDatabase(appContext);
+        productRepository = new ProductRepository(roomDatabase);
         discountDao = new DiscountDao(databaseHelper);
         discountRepository = new DiscountRepository(discountDao, discountSharedPreferences);
         cartDao = new CartDao(databaseHelper);
-        cartRepository = new CartRepository(cartDao,productDao, cartSharedPreferences);
+        cartRepository = new CartRepository(cartDao,roomDatabase, cartSharedPreferences);
         paymentDao = new PaymentDao(databaseHelper);
         orderDao = new OrderDao(databaseHelper);
         paymentRepository = new PaymentRepository(paymentDao);

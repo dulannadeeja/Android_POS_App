@@ -4,6 +4,7 @@ import android.util.Log;
 
 import com.example.ecommerce.dao.IProductDao;
 import com.example.ecommerce.model.Product;
+import com.example.ecommerce.utils.RoomDBHelper;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -17,8 +18,8 @@ public class ProductRepository implements IProductRepository {
     private static final String TAG = "ProductRepository";
     private final IProductDao productDao;
 
-    public ProductRepository(IProductDao productDao) {
-        this.productDao = productDao;
+    public ProductRepository(RoomDBHelper database) {
+        this.productDao = database.productDao();
     }
 
     @Override
@@ -38,7 +39,8 @@ public class ProductRepository implements IProductRepository {
 
     @Override
     public Single<ArrayList<Product>> getAllProducts() {
-        return productDao.getAllProducts();
+        return productDao.getAllProducts()
+                .map(ArrayList::new);
     }
 
     @Override
@@ -48,7 +50,8 @@ public class ProductRepository implements IProductRepository {
 
     @Override
     public Single<ArrayList<Product>> getFilteredProducts(String keyword) {
-        return productDao.filterProducts(keyword);
+        return productDao.filterProducts(keyword)
+                .map(ArrayList::new);
     }
 
     @Override
