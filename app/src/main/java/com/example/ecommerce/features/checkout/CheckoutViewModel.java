@@ -69,8 +69,8 @@ public class CheckoutViewModel extends ViewModel {
 
         if (Boolean.TRUE.equals(isOrderPlaced.getValue())) {
             compositeDisposable.add(
-                    paymentRepository.paymentHandler(paymentMethod.getValue(), payingAmount, order.getValue().get_orderId())
-                            .andThen(orderRepository.updateOrderPayment(payingAmount, order.getValue().get_orderId()))
+                    paymentRepository.paymentHandler(paymentMethod.getValue(), payingAmount, order.getValue().getOrderId())
+                            .andThen(orderRepository.updateOrderPayment(payingAmount, order.getValue().getOrderId()))
                             .subscribeOn(Schedulers.io())
                             .observeOn(AndroidSchedulers.mainThread())
                             .subscribe(updatedOrder -> {
@@ -89,7 +89,7 @@ public class CheckoutViewModel extends ViewModel {
             compositeDisposable.add(
                     orderRepository.createPendingOrderHandler(order.getValue())
                             .flatMap(orderId -> {
-                                order.getValue().set_orderId(orderId);
+                                order.getValue().setOrderId(orderId);
                                 isOrderPlaced.postValue(true);
                                 return paymentRepository.paymentHandler(paymentMethod.getValue(), payingAmount, orderId)
                                         .andThen(orderRepository.updateOrderPayment(payingAmount, orderId));
@@ -160,7 +160,8 @@ public class CheckoutViewModel extends ViewModel {
                 .withCustomerId(customer.getCustomerId())
                 .withDiscount(cartToSave.getDiscountId(), cartToSave.getDiscountValue())
                 .withOrderItems(new ArrayList<>(cartToSave.getCartItems().stream().map(
-                        cartItem -> new OrderItem(0, cartItem.getProductId(), cartItem.getQuantity())
+                        cartItem -> new OrderItem.OrderItemBuilder(orderId, cartItem.getProductId(),cartItem.getQuantity() )
+                                .build()
                 ).toList()))
                 .build();
     }

@@ -32,12 +32,11 @@ public class CustomerRepository implements ICustomerRepository {
      *
      * @param database          Room database helper to access DAOs.
      * @param sharedPreferences SharedPreferences instance for storing active customer data.
-     * @param orderDao          DAO for handling customer-related orders.
      */
-    public CustomerRepository(RoomDBHelper database, SharedPreferences sharedPreferences, IOrderDao orderDao) {
+    public CustomerRepository(RoomDBHelper database, SharedPreferences sharedPreferences) {
         this.customerDao = database.customerDao();
         this.sharedPreferences = sharedPreferences;
-        this.orderDao = orderDao;
+        this.orderDao = database.orderDao();
     }
 
     /**

@@ -51,7 +51,8 @@ public class OrderViewModel extends ViewModel {
                 .withCustomerId(customer.getCustomerId())
                 .withDiscount(cartToSave.getDiscountId(), cartToSave.getDiscountValue())
                 .withOrderItems(new ArrayList<>(cartToSave.getCartItems().stream().map(
-                        cartItem -> new OrderItem(0, cartItem.getProductId(), cartItem.getQuantity())
+                        cartItem -> new OrderItem.OrderItemBuilder(orderId,cartItem.getProductId(),cartItem.getQuantity())
+                                .build()
                 ).toList()))
                 .build();
     }

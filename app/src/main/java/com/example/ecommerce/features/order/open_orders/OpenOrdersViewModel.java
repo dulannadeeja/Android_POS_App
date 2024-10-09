@@ -58,7 +58,7 @@ public class OpenOrdersViewModel extends ViewModel {
         ArrayList<CartItem> cartItems = new ArrayList<>();
 
         compositeDisposable.add(
-                orderRepository.getOrderItems(order.get_orderId()).flatMapCompletable(orderItems ->
+                orderRepository.getOrderItems(order.getOrderId()).flatMapCompletable(orderItems ->
                         Observable.fromIterable(orderItems)
                                 .flatMapSingle(orderItem ->
                                         productRepository.getProductById(orderItem.getProductId())
@@ -78,7 +78,7 @@ public class OpenOrdersViewModel extends ViewModel {
                             Cart cartToLoad = new Cart.CartBuilder()
                                     .withCartSubTotalPrice(order.getSubTotal())
                                     .withCartTotalTaxAndCharges(order.getTaxAndCharges())
-                                    .withOrderId(order.get_orderId())
+                                    .withOrderId(order.getOrderId())
                                     .withDiscount(order.getDiscountId(), order.getDiscountAmount())
                                     .withCartItems(cartItems)
                                     .build();

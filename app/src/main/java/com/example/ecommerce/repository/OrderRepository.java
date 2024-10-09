@@ -8,6 +8,7 @@ import com.example.ecommerce.model.CartItem;
 import com.example.ecommerce.model.Order;
 import com.example.ecommerce.model.OrderItem;
 import com.example.ecommerce.utils.DateHelper;
+import com.example.ecommerce.utils.RoomDBHelper;
 
 import java.util.ArrayList;
 import java.util.NoSuchElementException;
@@ -21,14 +22,18 @@ public class OrderRepository implements IOrderRepository {
     private static final String TAG = "OrderRepository";
     private final IOrderDao orderDao;
 
-    public OrderRepository(IOrderDao orderDao) {
-        this.orderDao = orderDao;
+    public OrderRepository(RoomDBHelper database) {
+        this.orderDao = database.orderDao();
     }
 
     @SuppressLint("CheckResult")
     @Override
     public Single<Integer> createPendingOrderHandler(Order order) {
         return orderDao.createOrder(order)
+                .map(orderId -> {
+                    order.setOrderId(orderId.intValue());
+                    return orderId.intValue();
+                })
                 .subscribeOn(Schedulers.io())
                 .observeOn(Schedulers.io());
     }
@@ -52,7 +57,8 @@ public class OrderRepository implements IOrderRepository {
 
     @Override
     public Single<ArrayList<OrderItem>> getOrderItems(int orderId) {
-        return orderDao.getOrderItems(orderId);
+        return orderDao.getOrderItems(orderId)
+                .map(ArrayList::new);
     }
 
     @Override

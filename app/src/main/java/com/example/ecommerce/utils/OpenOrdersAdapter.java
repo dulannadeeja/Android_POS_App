@@ -27,7 +27,7 @@ public class OpenOrdersAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
     private static final int VIEW_TYPE_DATE_HEADER = 0;
     private static final int VIEW_TYPE_ORDER_ITEM = 1;
 
-    private List<OpenOrderItem> openOrderItems = new ArrayList<>();
+    private final List<OpenOrderItem> openOrderItems;
     private final OnOpenOrderClickListener listener;
 
     public OpenOrdersAdapter(List<OpenOrderItem> openOrderItems, OnOpenOrderClickListener listener) {
@@ -66,7 +66,7 @@ public class OpenOrdersAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
             }
         } else {
             OrderViewHolder orderViewHolder = (OrderViewHolder) holder;
-            orderViewHolder.orderIdTextView.setText(String.format("Order - %s", openOrderItems.get(position).getOrder().get_orderId()));
+            orderViewHolder.orderIdTextView.setText(String.format("Order - %s", openOrderItems.get(position).getOrder().getOrderId()));
             ZonedDateTime zonedDateTime = DateHelper.convertStringToZonedDateTime(openOrderItems.get(position).getOrder().getOrderDate());
             String timeAgo = DateHelper.timeAgo(zonedDateTime);
             orderViewHolder.orderTimeAgoTextView.setText(timeAgo);
@@ -107,24 +107,9 @@ public class OpenOrdersAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
         }
 
         public void bind(final Order order, final OnOpenOrderClickListener listener){
-            editOrder.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    listener.onEditOrderClick(order);
-                }
-            });
-            viewOrderDetails.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    listener.onViewOrderClick(order);
-                }
-            });
-            printReceipt.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    listener.onPrintReceiptClick(order);
-                }
-            });
+            editOrder.setOnClickListener(view -> listener.onEditOrderClick(order));
+            viewOrderDetails.setOnClickListener(view -> listener.onViewOrderClick(order));
+            printReceipt.setOnClickListener(view -> listener.onPrintReceiptClick(order));
         }
     }
 
