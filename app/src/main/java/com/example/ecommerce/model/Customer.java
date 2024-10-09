@@ -4,19 +4,57 @@ import android.os.Parcel;
 import android.os.Parcelable;
 
 import androidx.annotation.NonNull;
+import androidx.room.ColumnInfo;
+import androidx.room.Entity;
+import androidx.room.PrimaryKey;
 
+/**
+ * Model class representing a Customer entity in the `customers` table.
+ * Implements Parcelable to allow easy data passing between Android components.
+ */
+@Entity(tableName = "customers")
 public class Customer implements Parcelable {
+
+    // Empty constructor required by Room for data operations
+    public Customer() {}
+
+    @PrimaryKey(autoGenerate = true)
+    @ColumnInfo(name = "customer_id")
     private int customerId;
+
+    @ColumnInfo(name = "customer_first_name")
     private String firstName;
+
+    @ColumnInfo(name = "customer_last_name")
     private String lastName;
+
+    @ColumnInfo(name = "customer_email")
     private String email;
+
+    @ColumnInfo(name = "customer_phone")
     private String phone;
+
+    @ColumnInfo(name = "customer_address")
     private String address;
+
+    @ColumnInfo(name = "customer_city")
     private String city;
+
+    @ColumnInfo(name = "customer_region")
     private String region;
+
+    @ColumnInfo(name = "customer_gender")
     private String gender;
+
+    @ColumnInfo(name = "customer_photo")
     private String photo;
 
+    /**
+     * Builder-based constructor for creating Customer objects.
+     * This ensures flexibility in object creation.
+     *
+     * @param builder CustomerBuilder object containing the necessary fields.
+     */
     public Customer(CustomerBuilder builder) {
         this.customerId = builder.customerId;
         this.firstName = builder.firstName;
@@ -30,6 +68,10 @@ public class Customer implements Parcelable {
         this.photo = builder.photo;
     }
 
+    /**
+     * Parcel-based constructor for implementing Parcelable.
+     * Used when passing data between Android components.
+     */
     protected Customer(Parcel in) {
         customerId = in.readInt();
         firstName = in.readString();
@@ -57,6 +99,11 @@ public class Customer implements Parcelable {
         parcel.writeString(photo);
     }
 
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
     public static final Creator<Customer> CREATOR = new Creator<Customer>() {
         @Override
         public Customer createFromParcel(Parcel in) {
@@ -69,11 +116,92 @@ public class Customer implements Parcelable {
         }
     };
 
-    @Override
-    public int describeContents() {
-        return 0;
+    // Getters and setters for each field
+
+    public int getCustomerId() {
+        return customerId;
     }
 
+    public void setCustomerId(int customerId) {
+        this.customerId = customerId;
+    }
+
+    public String getFirstName() {
+        return firstName;
+    }
+
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
+    }
+
+    public String getLastName() {
+        return lastName;
+    }
+
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getPhone() {
+        return phone;
+    }
+
+    public void setPhone(String phone) {
+        this.phone = phone;
+    }
+
+    public String getAddress() {
+        return address;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
+    }
+
+    public String getCity() {
+        return city;
+    }
+
+    public void setCity(String city) {
+        this.city = city;
+    }
+
+    public String getRegion() {
+        return region;
+    }
+
+    public void setRegion(String region) {
+        this.region = region;
+    }
+
+    public String getGender() {
+        return gender;
+    }
+
+    public void setGender(String gender) {
+        this.gender = gender;
+    }
+
+    public String getPhoto() {
+        return photo;
+    }
+
+    public void setPhoto(String photo) {
+        this.photo = photo;
+    }
+
+    /**
+     * Builder class for constructing Customer objects.
+     * This pattern allows for flexible and maintainable object creation.
+     */
     public static class CustomerBuilder {
         private int customerId;
         private String firstName;
@@ -128,68 +256,4 @@ public class Customer implements Parcelable {
             return new Customer(this);
         }
     }
-
-    public int getCustomerId() {
-        return customerId;
-    }
-
-    public String getFirstName() {
-        return firstName;
-    }
-
-    public String getLastName() {
-        return lastName;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public String getPhone() {
-        return phone;
-    }
-
-    public String getAddress() {
-        return address;
-    }
-
-    public String getGender() {
-        return gender;
-    }
-
-    public String getCity() { return city; }
-
-    public String getRegion() { return region; }
-
-    public String getPhoto() { return photo; }
-
-    public void setFirstName(String firstName) {
-        this.firstName = firstName;
-    }
-
-    public void setLastName(String lastName) {
-        this.lastName = lastName;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public void setPhone(String phone) {
-        this.phone = phone;
-    }
-
-    public void setAddress(String address) {
-        this.address = address;
-    }
-
-    public void setCity(String city) { this.city = city; }
-
-    public void setRegion(String region) { this.region = region; }
-
-    public void setGender(String gender) {
-        this.gender = gender;
-    }
-
-    public void setPhoto(String photo) { this.photo = photo; }
 }
