@@ -3,17 +3,46 @@ package com.example.ecommerce.model;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import androidx.annotation.Nullable;
+import androidx.room.ColumnInfo;
+import androidx.room.Entity;
+import androidx.room.ForeignKey;
+import androidx.room.PrimaryKey;
+
+// Correct ForeignKey inside @Entity annotation
+@Entity(tableName = "cart_items",
+        foreignKeys = @ForeignKey(entity = Product.class,
+                parentColumns = "product_id",
+                childColumns = "product_id",
+                onDelete = ForeignKey.CASCADE))  // Optional: Handle deletion behavior
 public class CartItem implements Parcelable {
-    private final Integer _cartItemId; // Optional, can be null
-    private final int productId;
+
+    @ColumnInfo(name = "cart_item_id")
+    @PrimaryKey(autoGenerate = true)
+    private Integer cartItemId; // Nullable for auto-generation
+
+    @ColumnInfo(name = "product_id")
+    private int productId;
+
+    @ColumnInfo(name = "quantity")
     private int quantity;
+
+    @ColumnInfo(name = "price")
     private double price;
+
+    @ColumnInfo(name = "product_name")
     private String productName;
+
+    @ColumnInfo(name = "discount")
     private double discount;
+
+    // No-arg constructor required by Room
+    public CartItem() {
+    }
 
     // Private constructor to prevent direct instantiation
     private CartItem(Builder builder) {
-        this._cartItemId = builder._cartItemId;
+        this.cartItemId = builder.cartItemId;
         this.productId = builder.productId;
         this.quantity = builder.quantity;
         this.price = builder.price;
@@ -24,9 +53,9 @@ public class CartItem implements Parcelable {
     // Parcelable constructor
     protected CartItem(Parcel in) {
         if (in.readByte() == 0) {
-            _cartItemId = null;
+            cartItemId = null;
         } else {
-            _cartItemId = in.readInt();
+            cartItemId = in.readInt();
         }
         productId = in.readInt();
         quantity = in.readInt();
@@ -49,7 +78,7 @@ public class CartItem implements Parcelable {
 
     // Getters
     public Integer getCartItemId() {
-        return _cartItemId;
+        return cartItemId;
     }
 
     public int getProductId() {
@@ -85,6 +114,18 @@ public class CartItem implements Parcelable {
         this.discount = discount;
     }
 
+    public void setCartItemId(Integer cartItemId) {
+        this.cartItemId = cartItemId;
+    }
+
+    public void setProductId(int productId) {
+        this.productId = productId;
+    }
+
+    public void setProductName(String productName) {
+        this.productName = productName;
+    }
+
     // Parcelable implementation
     @Override
     public int describeContents() {
@@ -93,11 +134,11 @@ public class CartItem implements Parcelable {
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
-        if (_cartItemId == null) {
+        if (cartItemId == null) {
             dest.writeByte((byte) 0);
         } else {
             dest.writeByte((byte) 1);
-            dest.writeInt(_cartItemId);
+            dest.writeInt(cartItemId);
         }
         dest.writeInt(productId);
         dest.writeInt(quantity);
@@ -108,7 +149,7 @@ public class CartItem implements Parcelable {
 
     // Static Builder class
     public static class Builder {
-        private Integer _cartItemId = null;  // Optional field, default is null
+        private Integer cartItemId = null;  // Optional field, default is null
         private final int productId;
         private int quantity;
         private double price;
@@ -122,7 +163,7 @@ public class CartItem implements Parcelable {
 
         // Setter method for optional cartItemId with new naming convention
         public Builder withCartItemId(int cartItemId) {
-            this._cartItemId = cartItemId;
+            this.cartItemId = cartItemId;
             return this;
         }
 
