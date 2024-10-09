@@ -1,9 +1,25 @@
 package com.example.ecommerce.model;
 
+import androidx.room.ColumnInfo;
+import androidx.room.Entity;
+import androidx.room.PrimaryKey;
+
+@Entity(tableName = "discounts")
 public class Discount {
+
+    // Empty constructor for Room
+    public Discount() {
+    }
+
+    @ColumnInfo(name = "discount_id")
+    @PrimaryKey(autoGenerate = true)
     private int discountId;
-    private final String discountType;
-    private final double discountValue;
+
+    @ColumnInfo(name = "discount_type")
+    private String discountType;
+
+    @ColumnInfo(name = "discount_value")
+    private double discountValue;
 
     private Discount(DiscountBuilder builder) {
         this.discountId = builder.discountId;
@@ -46,5 +62,17 @@ public class Discount {
 
     public double getDiscountValue() {
         return discountValue;
+    }
+
+    public void setDiscountId(int discountId) {
+        this.discountId = discountId;
+    }
+
+    public void setDiscountType(String discountType) {
+        this.discountType = discountType;
+    }
+
+    public void setDiscountValue(double discountValue) {
+        this.discountValue = discountValue;
     }
 }
