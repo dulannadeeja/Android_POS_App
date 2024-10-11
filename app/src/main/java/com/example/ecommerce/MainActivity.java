@@ -18,7 +18,6 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.lifecycle.ViewModelProvider;
-
 import com.example.ecommerce.databinding.ActivityMainBinding;
 import com.example.ecommerce.features.cart.CartFragment;
 import com.example.ecommerce.features.cart.CartViewModel;
@@ -34,7 +33,6 @@ import com.example.ecommerce.features.order.OrderViewModel;
 import com.example.ecommerce.features.products.ProductsFragment;
 import com.example.ecommerce.model.Cart;
 import com.example.ecommerce.model.Customer;
-import com.example.ecommerce.utils.DatabaseHelper;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.database.DatabaseReference;
@@ -125,10 +123,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         if (savedInstanceState == null) {
             loadFragment(new ProductsFragment(), false);
         }
-
-        // ------------------------------------ Database usage ------------------------------------
-        DatabaseHelper database = App.appModule.provideDatabaseHelper();
-         database.onUpgrade(database.getWritableDatabase(), 1, 1);
 
 
         // ------------------------------------ Example of firebase database usage ------------------------------------

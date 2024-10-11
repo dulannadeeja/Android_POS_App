@@ -24,12 +24,10 @@ import com.example.ecommerce.features.customers.CustomerViewModelFactory;
 import com.example.ecommerce.features.customers.create_customer.CreateCustomerViewModelFactory;
 import com.example.ecommerce.features.discount.DiscountViewModelFactory;
 import com.example.ecommerce.features.products.ProductsViewModelFactory;
-import com.example.ecommerce.utils.DatabaseHelper;
 import com.example.ecommerce.utils.RoomDBHelper;
 
 interface IAppModule {
     Context provideAppContext();
-    DatabaseHelper provideDatabaseHelper();
     IProductRepository provideProductRepository();
     ProductsViewModelFactory provideProductsViewModelFactory();
     CartViewModelFactory provideCartViewModelFactory();
@@ -45,7 +43,6 @@ interface IAppModule {
 public class AppModule implements IAppModule {
     private final Application application;
     private final Context appContext;
-    private final DatabaseHelper databaseHelper;
     private final RoomDBHelper roomDatabase;
     private final IProductRepository productRepository;
     private final ProductsViewModelFactory productsViewModelFactory;
@@ -70,7 +67,6 @@ public class AppModule implements IAppModule {
         customerSharedPreferences = appContext.getSharedPreferences("CustomerSharedPreferences", MODE_PRIVATE);
         discountSharedPreferences = appContext.getSharedPreferences("DiscountSharedPreferences", MODE_PRIVATE);
         cartSharedPreferences = appContext.getSharedPreferences("CartSharedPreferences", MODE_PRIVATE);
-        databaseHelper = new DatabaseHelper(appContext);
         roomDatabase = RoomDBHelper.getDatabase(appContext);
         productRepository = new ProductRepository(roomDatabase);
         discountRepository = new DiscountRepository(roomDatabase, discountSharedPreferences);
@@ -85,11 +81,6 @@ public class AppModule implements IAppModule {
         checkoutViewModelFactory = new CheckoutViewModelFactory(paymentRepository, orderRepository);
         customerViewModelFactory = new CustomerViewModelFactory(application,customerRepository);
         orderViewModelFactory = new OrderViewModelFactory(orderRepository);
-    }
-
-    @Override
-    public DatabaseHelper provideDatabaseHelper() {
-        return databaseHelper;
     }
 
     @Override
