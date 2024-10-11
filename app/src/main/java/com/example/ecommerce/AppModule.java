@@ -5,10 +5,6 @@ import static android.content.Context.MODE_PRIVATE;
 import android.app.Application;
 import android.content.Context;
 import android.content.SharedPreferences;
-import com.example.ecommerce.dao.ICustomerDao;
-import com.example.ecommerce.dao.IOrderDao;
-import com.example.ecommerce.dao.IPaymentDao;
-import com.example.ecommerce.dao.PaymentDao;
 import com.example.ecommerce.features.order.OrderViewModelFactory;
 import com.example.ecommerce.repository.CartRepository;
 import com.example.ecommerce.repository.CustomerRepository;
@@ -57,7 +53,6 @@ public class AppModule implements IAppModule {
     private final CartViewModelFactory cartViewModelFactory;
     private final IDiscountRepository discountRepository;
     private final DiscountViewModelFactory discountViewModelFactory;
-    private final IPaymentDao paymentDao;
     private final IPaymentRepository paymentRepository;
     private final IOrderRepository orderRepository;
     private final CheckoutViewModelFactory checkoutViewModelFactory;
@@ -80,8 +75,7 @@ public class AppModule implements IAppModule {
         productRepository = new ProductRepository(roomDatabase);
         discountRepository = new DiscountRepository(roomDatabase, discountSharedPreferences);
         cartRepository = new CartRepository(roomDatabase, cartSharedPreferences);
-        paymentDao = new PaymentDao(databaseHelper);
-        paymentRepository = new PaymentRepository(paymentDao);
+        paymentRepository = new PaymentRepository(roomDatabase);
         orderRepository = new OrderRepository(roomDatabase);
         discountViewModelFactory = new DiscountViewModelFactory(discountRepository);
         customerRepository = new CustomerRepository(roomDatabase, customerSharedPreferences);
